@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Two Rooms and a Boom</title>
+    <meta
+      name="description"
+      content="Play Two Rooms and a Boom with friends — three-word room codes, live sync, or print cards for physical play."
+    />
+    <meta name="theme-color" content="#0f141c" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/app.css" />
+  </head>
+  <body>
+    <div class="bg" aria-hidden="true">
+      <div class="bg-orb bg-orb-a"></div>
+      <div class="bg-orb bg-orb-b"></div>
+      <div class="bg-grid"></div>
+    </div>
+
+    <header class="topbar">
+      <a class="brand" href="/" data-nav="home">Two Rooms and a Boom</a>
+      <nav class="topnav">
+        <a href="/print">Print deck</a>
+      </nav>
+    </header>
+
+    <main id="app">
+      <!-- Home -->
+      <section class="view view-home is-active" data-view="home">
+        <div class="hero">
+          <p class="brand-mark">Two Rooms and a Boom</p>
+          <h1>Deal roles. Split rooms. Survive the boom.</h1>
+          <p class="lede">
+            Create a room, share a three-word code, and play on your phones —
+            or print a shuffled deck for the table.
+          </p>
+          <div class="hero-actions">
+            <button type="button" class="btn primary" id="btn-create">
+              Create room
+            </button>
+            <button type="button" class="btn ghost" id="btn-show-join">
+              Join with code
+            </button>
+            <a class="btn ghost" href="/print">Print cards</a>
+          </div>
+        </div>
+
+        <form class="join-panel" id="join-panel" hidden>
+          <label class="field">
+            <span>Room code</span>
+            <input
+              id="join-code"
+              type="text"
+              autocomplete="off"
+              autocapitalize="none"
+              spellcheck="false"
+              placeholder="coral-lantern-swift"
+            />
+          </label>
+          <label class="field">
+            <span>Your name</span>
+            <input id="join-name" type="text" maxlength="24" placeholder="Alex" />
+          </label>
+          <button type="submit" class="btn primary">Join game</button>
+          <p class="form-hint" id="join-error" hidden></p>
+        </form>
+
+        <div class="feature-row">
+          <article class="feature">
+            <h3>Easy codes</h3>
+            <p>Say <em>maple-ember-harbor</em> out loud. Enough entropy for a night of games.</p>
+          </article>
+          <article class="feature">
+            <h3>Private roles</h3>
+            <p>Only you see your card. Host controls playset, deal, and round timer.</p>
+          </article>
+          <article class="feature">
+            <h3>Stays in sync</h3>
+            <p>Live lobby on Cloudflare Durable Objects — reconnects if your phone sleeps.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- Lobby / Game -->
+      <section class="view view-game" data-view="game" hidden>
+        <div class="game-shell">
+          <header class="game-header">
+            <div class="code-block">
+              <span class="code-label">Room</span>
+              <button type="button" class="code-value" id="room-code" title="Copy code">
+                —
+              </button>
+              <span class="copy-toast" id="copy-toast" hidden>Copied</span>
+            </div>
+            <div class="conn" id="conn-status">
+              <span class="conn-dot"></span>
+              <span class="conn-text">Connecting…</span>
+            </div>
+          </header>
+
+          <p class="toast" id="toast" hidden></p>
+
+          <div class="game-grid">
+            <aside class="panel players-panel">
+              <div class="panel-head">
+                <h2>Players</h2>
+                <span class="pill" id="player-count-pill">0</span>
+              </div>
+              <ul class="player-list" id="player-list"></ul>
+            </aside>
+
+            <section class="panel main-panel">
+              <div id="lobby-controls" class="lobby-controls">
+                <div class="panel-head">
+                  <h2>Lobby</h2>
+                  <p id="lobby-blurb">Waiting for players…</p>
+                </div>
+
+                <label class="field">
+                  <span>Your name</span>
+                  <input id="self-name" type="text" maxlength="24" />
+                </label>
+
+                <div id="host-setup" hidden>
+                  <label class="field">
+                    <span>Playset</span>
+                    <select id="playset-select"></select>
+                  </label>
+                  <p class="form-hint" id="playset-blurb"></p>
+                  <button type="button" class="btn primary" id="btn-start">
+                    Deal &amp; start
+                  </button>
+                </div>
+
+                <div class="lobby-actions">
+                  <button type="button" class="btn ghost" id="btn-ready">I’m ready</button>
+                  <button type="button" class="btn ghost danger" id="btn-leave">Leave</button>
+                </div>
+              </div>
+
+              <div id="play-controls" class="play-controls" hidden>
+                <div class="you-card-wrap" id="you-card-wrap">
+                  <button type="button" class="card-reveal" id="card-reveal">
+                    <span class="card-reveal-inner">
+                      <span class="peek">Tap to reveal your role</span>
+                    </span>
+                  </button>
+                  <article class="role-card" id="role-card" hidden></article>
+                </div>
+
+                <div class="room-badge" id="room-badge"></div>
+
+                <div class="timer-block" id="timer-block">
+                  <div class="timer-meta">
+                    <span id="round-label">Round</span>
+                    <span id="hostage-label"></span>
+                  </div>
+                  <div class="timer-display" id="timer-display">—:—</div>
+                  <div class="timer-bar"><div class="timer-bar-fill" id="timer-bar"></div></div>
+                  <div class="host-timer-actions" id="host-timer-actions" hidden>
+                    <button type="button" class="btn ghost" id="btn-start-round">Start round</button>
+                    <button type="button" class="btn ghost" id="btn-pause">Pause</button>
+                    <button type="button" class="btn ghost" id="btn-end-round">End round</button>
+                    <button type="button" class="btn ghost" id="btn-reshuffle">Back to lobby</button>
+                    <button type="button" class="btn primary" id="btn-reveal-all">Reveal all / end</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        Fan-made · not affiliated with Tuesday Knight Games ·
+        <a href="/print">Print mode</a>
+      </p>
+    </footer>
+
+    <script type="module" src="/js/multiplayer.js"></script>
+  </body>
+</html>

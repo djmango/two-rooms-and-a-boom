@@ -1,37 +1,41 @@
-# Two Rooms and a Boom — Print Deck
+# Two Rooms and a Boom
 
-Offline fan tool to randomize and print character cards for
-[Two Rooms and a Boom](https://tuesdayknightgames.com/).
+Play online with friends (three-word room codes + live sync) or print a shuffled deck for the table.
 
-Built as a **print-first alternative** to phone apps like
-[playkaboom.com](https://www.playkaboom.com/) (PeerJS lobbies, color-reveal
-quirks on some mobile browsers). Everything runs locally in your browser.
+## Stack
 
-## Use
+- **Cloudflare Workers** + **Durable Objects** (hibernatable WebSockets) for each game room  
+  R2 would be wrong here — rooms need live coordination, not object storage.
+- Static assets for the UI and offline **print deck**
+- Easy codes like `coral-lantern-swift` (~1500³ combinations)
 
-Open `index.html` in a browser, or:
+## Develop
 
 ```bash
-cd two-rooms-and-a-boom
-python3 -m http.server 8080
+npm install
+npm run dev
 ```
 
-1. Pick a playset (basic, Doctor/Engineer, Instant Death, etc.)
-2. Set player count; optionally add names
-3. Shuffle — roles + room split are randomized
-4. Spoiler-safe mode: each person taps only their slip
-5. Or **Print** cuttable fronts/backs, named slips, leaders, hostage chart
+Open the local URL Wrangler prints (usually `http://127.0.0.1:8787`).
 
-## What’s included
+## Deploy
 
-- Legal decks: President + Bomber, equal Red/Blue, Gambler (or other odd card) when needed
-- Playset presets inspired by Play Kaboom’s tutorial/official sets
-- Custom advanced packs (Doctor/Engineer, Spies, Coy Boys, greys, …)
-- Named deal slips + Room A / Room B split
-- Bury support (e.g. 6 Player Mystery)
+```bash
+npx wrangler login   # once
+npm run deploy
+```
 
-## License note
+## Play
 
-Fan-made helper. Not affiliated with Tuesday Knight Games.
-Playset ideas inspired by [Luke-lwz/kaboom](https://github.com/Luke-lwz/kaboom)
-(CC BY-NC-SA 4.0).
+1. **Create room** → share the three-word code  
+2. Friends **Join with code** on their phones  
+3. Host picks a playset → **Deal & start**  
+4. Each player taps to reveal their private role and goes to Room A/B  
+5. Host runs the round timer; after the last exchange, **Reveal all / end**
+
+Print mode stays at `/print.html` for physical cards.
+
+## Fan project
+
+Not affiliated with Tuesday Knight Games. Playset ideas inspired by
+[playkaboom.com](https://www.playkaboom.com/) / Luke-lwz/kaboom (CC BY-NC-SA).

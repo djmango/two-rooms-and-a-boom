@@ -1,0 +1,17 @@
+{
+  "name": "two-rooms-and-a-boom",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Two Rooms and a Boom — multiplayer rooms on Cloudflare Durable Objects + print deck",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "check": "wrangler deploy --dry-run",
+    "types": "wrangler types"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260708.1",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.110.0"
+  }
+}
