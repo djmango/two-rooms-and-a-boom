@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Two Rooms and a Boom — Print Deck</title>
+    <meta
+      name="description"
+      content="Randomize and print character cards for Two Rooms and a Boom. Deal a legal deck, then cut and play."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="noise" aria-hidden="true"></div>
+
+    <header class="site-header no-print">
+      <p class="brand">Two Rooms and a Boom</p>
+      <nav class="header-nav">
+        <a href="#setup">Setup</a>
+        <a href="#deck">Deck</a>
+        <a href="#print-sheet">Print</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero no-print" id="top">
+        <div class="hero-copy">
+          <p class="brand-mark">Two Rooms and a Boom</p>
+          <h1>Print a shuffled deck. Play in two rooms.</h1>
+          <p class="lede">
+            Pick your player count, optionally swap in advanced roles, then print
+            cuttable character cards and leader cards for a physical game night.
+          </p>
+          <div class="hero-actions">
+            <a class="btn primary" href="#setup">Build deck</a>
+            <button type="button" class="btn ghost" id="quick-deal">
+              Quick deal (10 players)
+            </button>
+          </div>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <div class="room room-a">
+            <span>Room A</span>
+            <div class="pulse"></div>
+          </div>
+          <div class="boom-core">
+            <span>BOOM</span>
+          </div>
+          <div class="room room-b">
+            <span>Room B</span>
+            <div class="pulse delay"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel setup no-print" id="setup">
+        <div class="panel-head">
+          <h2>Deck setup</h2>
+          <p>One card per player. President and Bomber are always included.</p>
+        </div>
+
+        <form id="setup-form" class="setup-grid">
+          <label class="field">
+            <span>Players</span>
+            <input
+              type="number"
+              id="player-count"
+              name="players"
+              min="6"
+              max="30"
+              value="10"
+              required
+            />
+            <small>Official range: 6–30</small>
+          </label>
+
+          <fieldset class="field pack">
+            <legend>Advanced roles</legend>
+            <p class="hint">
+              Selected roles replace plain Red/Blue Team cards in matching pairs
+              when possible.
+            </p>
+            <div class="checks" id="advanced-options"></div>
+          </fieldset>
+
+          <div class="setup-actions">
+            <button type="submit" class="btn primary">Shuffle &amp; deal</button>
+            <button type="button" class="btn ghost" id="reshuffle">
+              Reshuffle same roles
+            </button>
+            <button type="button" class="btn ghost" id="print-btn">
+              Print cards
+            </button>
+          </div>
+        </form>
+
+        <aside class="rules-chip" id="hostage-info" aria-live="polite"></aside>
+      </section>
+
+      <section class="panel deck-panel" id="deck">
+        <div class="panel-head no-print">
+          <h2>Your deal</h2>
+          <p id="deck-summary">Choose a player count and shuffle to begin.</p>
+        </div>
+
+        <div class="screen-cards no-print" id="screen-cards"></div>
+
+        <div class="print-only print-intro">
+          <h1>Two Rooms and a Boom</h1>
+          <p id="print-summary"></p>
+        </div>
+
+        <div class="print-sheet" id="print-sheet" aria-label="Printable cards"></div>
+      </section>
+
+      <section class="panel howto no-print" id="howto">
+        <div class="panel-head">
+          <h2>How to use</h2>
+          <p>Cut, shuffle physically if you want, deal facedown, then split into rooms.</p>
+        </div>
+        <ol class="steps">
+          <li>Set the player count and optional advanced roles.</li>
+          <li>Hit shuffle — the site builds a legal deck and randomizes order.</li>
+          <li>Print on letter/A4 paper, cut along the guides, keep backs identical.</li>
+          <li>Deal one card per player. Separate into two rooms as evenly as possible.</li>
+          <li>Use the printed leader cards and hostage chart during rounds.</li>
+        </ol>
+        <p class="disclaimer">
+          Fan-made print helper inspired by Tuesday Knight Games’
+          <em>Two Rooms and a Boom</em>. Not an official product.
+        </p>
+      </section>
+    </main>
+
+    <footer class="site-footer no-print">
+      <p>Two Rooms and a Boom — print deck randomizer</p>
+    </footer>
+
+    <script src="characters.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
