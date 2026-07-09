@@ -6,7 +6,7 @@
     <title>Two Rooms and a Boom — Print Deck</title>
     <meta
       name="description"
-      content="Randomize and print character cards for Two Rooms and a Boom. Deal a legal deck, then cut and play."
+      content="Offline print deck for Two Rooms and a Boom. Shuffle legal roles, deal named slips, print cards — no phone sync bugs."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -23,7 +23,7 @@
       <p class="brand">Two Rooms and a Boom</p>
       <nav class="header-nav">
         <a href="#setup">Setup</a>
-        <a href="#deck">Deck</a>
+        <a href="#deck">Deal</a>
         <a href="#print-sheet">Print</a>
       </nav>
     </header>
@@ -32,15 +32,16 @@
       <section class="hero no-print" id="top">
         <div class="hero-copy">
           <p class="brand-mark">Two Rooms and a Boom</p>
-          <h1>Print a shuffled deck. Play in two rooms.</h1>
+          <h1>Shuffle. Print. Play in two rooms.</h1>
           <p class="lede">
-            Pick your player count, optionally swap in advanced roles, then print
-            cuttable character cards and leader cards for a physical game night.
+            An offline print deck — legal roles, playset presets, named deal slips,
+            and cuttable cards. Built for physical play when phone apps like
+            Play Kaboom get flaky.
           </p>
           <div class="hero-actions">
             <a class="btn primary" href="#setup">Build deck</a>
             <button type="button" class="btn ghost" id="quick-deal">
-              Quick deal (10 players)
+              Quick deal (10 · basic)
             </button>
           </div>
         </div>
@@ -62,10 +63,18 @@
       <section class="panel setup no-print" id="setup">
         <div class="panel-head">
           <h2>Deck setup</h2>
-          <p>One card per player. President and Bomber are always included.</p>
+          <p>
+            Pick a playset (inspired by Play Kaboom’s presets), add optional names,
+            then shuffle. Everything stays on this device — no lobby sync.
+          </p>
         </div>
 
         <form id="setup-form" class="setup-grid">
+          <fieldset class="field pack">
+            <legend>Playset</legend>
+            <div class="playsets" id="playset-options"></div>
+          </fieldset>
+
           <label class="field">
             <span>Players</span>
             <input
@@ -77,22 +86,40 @@
               value="10"
               required
             />
-            <small>Official range: 6–30</small>
+            <small>Official range: 6–30 (some playsets are fixed)</small>
           </label>
 
-          <fieldset class="field pack">
-            <legend>Advanced roles</legend>
+          <fieldset class="field pack" id="player-names">
+            <legend>Player names <span class="optional">(optional)</span></legend>
             <p class="hint">
-              Selected roles replace plain Red/Blue Team cards in matching pairs
-              when possible.
+              Names go on deal slips and the room split. Leave blank for Player 1…
+            </p>
+            <div class="name-fields" id="name-fields"></div>
+          </fieldset>
+
+          <fieldset class="field pack" id="advanced-wrap" hidden>
+            <legend>Custom advanced packs</legend>
+            <p class="hint">
+              Selected roles replace plain Red/Blue Team cards in matching pairs.
             </p>
             <div class="checks" id="advanced-options"></div>
           </fieldset>
 
+          <label class="check deal-mode-check">
+            <input type="checkbox" id="deal-mode" checked />
+            <span>
+              <strong>Spoiler-safe deal</strong>
+              <em>Hide roles on screen until you click a slip (or Reveal all). Print still has full cards.</em>
+            </span>
+          </label>
+
           <div class="setup-actions">
             <button type="submit" class="btn primary">Shuffle &amp; deal</button>
             <button type="button" class="btn ghost" id="reshuffle">
-              Reshuffle same roles
+              Reshuffle
+            </button>
+            <button type="button" class="btn ghost" id="reveal-all">
+              Reveal all
             </button>
             <button type="button" class="btn ghost" id="print-btn">
               Print cards
@@ -106,8 +133,12 @@
       <section class="panel deck-panel" id="deck">
         <div class="panel-head no-print">
           <h2>Your deal</h2>
-          <p id="deck-summary">Choose a player count and shuffle to begin.</p>
+          <p id="deck-summary">Choose a playset and shuffle to begin.</p>
         </div>
+
+        <aside class="buried-note no-print" id="buried-note" hidden></aside>
+
+        <div class="room-split no-print" id="room-split" aria-label="Room assignments"></div>
 
         <div class="screen-cards no-print" id="screen-cards"></div>
 
@@ -122,24 +153,26 @@
       <section class="panel howto no-print" id="howto">
         <div class="panel-head">
           <h2>How to use</h2>
-          <p>Cut, shuffle physically if you want, deal facedown, then split into rooms.</p>
+          <p>Cut cards, or hand out named slips. Split into the two rooms shown above.</p>
         </div>
         <ol class="steps">
-          <li>Set the player count and optional advanced roles.</li>
-          <li>Hit shuffle — the site builds a legal deck and randomizes order.</li>
-          <li>Print on letter/A4 paper, cut along the guides, keep backs identical.</li>
-          <li>Deal one card per player. Separate into two rooms as evenly as possible.</li>
-          <li>Use the printed leader cards and hostage chart during rounds.</li>
+          <li>Choose a playset and player count (add names if you want).</li>
+          <li>Shuffle — roles are randomized and rooms are split evenly.</li>
+          <li>In spoiler-safe mode, pass the phone/laptop so each person reveals only their slip.</li>
+          <li>Or print: cut character cards (and backs), use leader cards + hostage chart.</li>
+          <li>Play physically — no Wi‑Fi, PeerJS, or color-reveal browser bugs required.</li>
         </ol>
         <p class="disclaimer">
-          Fan-made print helper inspired by Tuesday Knight Games’
-          <em>Two Rooms and a Boom</em>. Not an official product.
+          Fan-made print helper for Tuesday Knight Games’
+          <em>Two Rooms and a Boom</em>. Playset ideas inspired by
+          <a href="https://www.playkaboom.com/" rel="noopener noreferrer">playkaboom.com</a>
+          (CC BY-NC-SA). Not an official product of either.
         </p>
       </section>
     </main>
 
     <footer class="site-footer no-print">
-      <p>Two Rooms and a Boom — print deck randomizer</p>
+      <p>Two Rooms and a Boom — offline print deck</p>
     </footer>
 
     <script src="characters.js"></script>

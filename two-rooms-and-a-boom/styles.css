@@ -387,6 +387,163 @@ main,
   gap: 0.65rem;
 }
 
+.optional {
+  font-weight: 500;
+  opacity: 0.55;
+  font-size: 0.85em;
+}
+
+.playsets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.65rem;
+  margin-top: 0.35rem;
+}
+
+.playset-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.65rem;
+  align-items: start;
+  padding: 0.75rem;
+  border: 2px solid var(--line);
+  background: #f8fafc;
+  cursor: pointer;
+  position: relative;
+}
+
+.playset-card input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.playset-card.is-active {
+  border-color: var(--ink);
+  background: #fff;
+  box-shadow: inset 3px 0 0 var(--red);
+}
+
+.playset-emoji {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.playset-body {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.playset-body em {
+  font-style: normal;
+  font-size: 0.8rem;
+  color: var(--ink-dim);
+}
+
+.playset-range {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.name-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.name-field {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.name-field span {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  opacity: 0.55;
+}
+
+.name-field input {
+  padding: 0.5rem 0.55rem;
+  border: 1px solid var(--line);
+  background: #fff;
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.deal-mode-check {
+  margin: 0;
+}
+
+.room-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.room-col {
+  border: 2px solid var(--ink);
+  padding: 0.85rem 1rem;
+  background: #fff;
+}
+
+.room-col-a {
+  border-color: var(--blue);
+}
+
+.room-col-b {
+  border-color: var(--red);
+}
+
+.room-col h3 {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.room-col h3 small {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  opacity: 0.55;
+}
+
+.room-col ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.92rem;
+}
+
+.buried-note {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-left: 3px solid var(--grey);
+  background: rgba(91, 101, 115, 0.08);
+  font-size: 0.92rem;
+}
+
+.team-hidden.face::before {
+  background: #94a3b8;
+}
+
+.team-hidden .card-team {
+  color: #64748b;
+}
+
+.howto a {
+  color: var(--blue-deep);
+}
+
 .rules-chip {
   margin-top: 1.25rem;
   padding: 0.85rem 1rem;
@@ -644,6 +801,10 @@ main,
 
   .room {
     height: 180px;
+  }
+
+  .room-split {
+    grid-template-columns: 1fr;
   }
 }
 
