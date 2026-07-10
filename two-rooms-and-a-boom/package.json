@@ -9,7 +9,8 @@
   "description": "Two Rooms and a Boom — Vite/React UI + Cloudflare Workers Durable Objects multiplayer",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "wrangler types && tsc -b && vite build",
+    "postinstall": "npm run build",
     "preview": "vite preview",
     "deploy": "npm run build && wrangler deploy",
     "check": "npm run build && wrangler deploy --dry-run",

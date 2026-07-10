@@ -26,6 +26,12 @@ npx wrangler login   # once
 npm run deploy
 ```
 
+`npm run deploy` (build then `wrangler deploy`) is required: a bare
+`wrangler deploy` has no built assets to serve. `npm install` also runs the
+build via a `postinstall` hook, so Cloudflare Workers Builds' default deploy
+command (`npx wrangler deploy`) works out of the box with no dashboard
+configuration needed.
+
 ## Play
 
 1. **Create room** → share the three-word code  
