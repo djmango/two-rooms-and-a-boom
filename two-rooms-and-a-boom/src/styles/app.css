@@ -1,19 +1,19 @@
 :root {
-  --ink: #f0ece3;
-  --ink-dim: #a09a8c;
-  --ink-faint: #6b6657;
-  --bg: #16140f;
-  --panel: #1f1c16;
-  --panel-2: #26221a;
-  --line: #332e24;
-  --line-2: #4a4334;
+  --ink: #f0f4fa;
+  --ink-dim: #8b95a7;
+  --ink-faint: #5c6573;
+  --bg: #0a0d12;
+  --panel: #141821;
+  --panel-2: #1c212c;
+  --line: #252b37;
+  --line-2: #383f4d;
 
-  --red: #c8362b;
-  --blue: #2b6cb0;
-  --grey: #6b6657;
-  --gold: #c9a227;
-  --ok: #4a7c59;
-  --danger: #c8362b;
+  --red: #ff453a;
+  --blue: #0a84ff;
+  --grey: #6b7280;
+  --gold: #ffd60a;
+  --ok: #30d158;
+  --danger: #ff453a;
 
   --font-display: "Archivo Black", "Inter", -apple-system, system-ui, sans-serif;
   --font-body: "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
@@ -192,8 +192,8 @@ main {
 }
 
 .btn.primary:hover {
-  background: #a52a22;
-  border-color: #a52a22;
+  background: #d8352d;
+  border-color: #d8352d;
 }
 
 .btn.secondary {
@@ -751,7 +751,7 @@ main {
   border-radius: var(--r-sm);
   background: var(--panel);
   border: 1px solid var(--red);
-  color: #e8a09a;
+  color: #ff8b82;
 }
 
 .toast a {
@@ -1037,8 +1037,8 @@ main {
   aspect-ratio: 2.5 / 3.5;
   border-radius: var(--r-md);
   border: 1px solid var(--bg);
-  background: #f4ede0;
-  color: #1a1610;
+  background: #f4f4f0;
+  color: #14161a;
   padding: 1.1rem 1rem 0.9rem;
   display: flex;
   flex-direction: column;
