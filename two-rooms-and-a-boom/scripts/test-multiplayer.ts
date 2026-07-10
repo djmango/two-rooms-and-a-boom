@@ -449,8 +449,30 @@ async function testTestMode() {
   const botCountAfter = afterSecondTest.state.players.filter((p: any) => p.isBot).length;
   assert(botCountAfter === botsFromGuest.length, "a second 'test' joiner does not duplicate bots");
 
+  // Renaming to "test" from the lobby (set_name), not just the initial
+  // hello, must also seed bots.
+  const createRes3 = await fetch(`${BASE}/api/rooms`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ hostName: "Alex", playsetId: "basic", playerCount: 10 }),
+  });
+  const created3 = await createRes3.json();
+  const host3 = new Client();
+  await host3.connect(created3.code);
+  host3.send({ type: "hello", name: "Alex", playerId: created3.playerId, secret: created3.secret });
+  await host3.wait((m) => m.type === "welcome");
+  host3.send({ type: "set_name", name: "test" });
+  const afterRename = await host3.wait(
+    (m) => m.type === "state" && m.state.players.some((p: any) => p.isBot)
+  );
+  assert(
+    afterRename.state.players.filter((p: any) => p.isBot).length >= 3,
+    "renaming to 'test' in the lobby also seeds bots"
+  );
+
   host.close();
   host2.close();
+  host3.close();
   guest.close();
   guest2.close();
 }

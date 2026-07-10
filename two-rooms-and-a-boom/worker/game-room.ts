@@ -298,6 +298,7 @@ export class GameRoom extends DurableObject<Env> {
       switch (msg.type) {
         case "set_name":
           player.name = sanitizeName(msg.name);
+          if (state.phase === "lobby" && isTestModeName(player.name)) seedTestBots(state);
           break;
         case "ready":
           if (state.phase === "lobby") player.ready = Boolean(msg.ready);
