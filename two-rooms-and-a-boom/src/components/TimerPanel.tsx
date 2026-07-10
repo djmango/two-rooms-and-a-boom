@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { RoundInfo } from "@shared/game/types";
+import { playRoundEndAlarm } from "@/lib/sound";
 
 const RING_RADIUS = 52;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
@@ -24,6 +25,7 @@ export default function TimerPanel({
   onRevealAll: () => void;
 }) {
   const [remainingMs, setRemainingMs] = useState<number | null>(null);
+  const alarmedEndsAt = useRef<number | null>(null);
 
   useEffect(() => {
     if (!round) {
@@ -40,6 +42,11 @@ export default function TimerPanel({
       setRemainingMs(rem ?? null);
       if (!round.paused && round.endsAt && (rem ?? 0) > 0) {
         raf = requestAnimationFrame(tick);
+      } else if (!round.paused && round.endsAt && (rem ?? 0) <= 0) {
+        if (alarmedEndsAt.current !== round.endsAt) {
+          alarmedEndsAt.current = round.endsAt;
+          playRoundEndAlarm();
+        }
       }
     };
     tick();
