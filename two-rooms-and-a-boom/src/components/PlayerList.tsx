@@ -36,6 +36,11 @@ export default function PlayerList({
               <span className="pname">{p.name}</span>
               <span className="pmeta">
                 <span className={`dot-online ${p.connected ? "" : "dot-offline"}`} />
+                {p.isBot && (
+                  <span className="bot-tag" title="Test-mode bot player">
+                    Bot
+                  </span>
+                )}
                 {p.room != null && (
                   <span className={`room-tag ${p.room.toLowerCase()}`}>Room {p.room}</span>
                 )}
