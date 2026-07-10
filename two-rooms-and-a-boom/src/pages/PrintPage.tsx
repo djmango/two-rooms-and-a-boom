@@ -124,8 +124,8 @@ export default function PrintPage() {
                     checked={ps.id === playsetId}
                     onChange={() => selectPlayset(ps)}
                   />
-                  <span className="playset-emoji" aria-hidden>
-                    {ps.emoji}
+                  <span className="playset-mark" aria-hidden="true">
+                    {ps.name.slice(0, 1).toUpperCase()}
                   </span>
                   <span className="playset-body">
                     <strong>{ps.name}</strong>
@@ -225,8 +225,13 @@ export default function PrintPage() {
         </div>
 
         <aside className="rules-chip">
-          <strong>          {deal?.players ?? players} players</strong> · Hostages: {hostages.join(" → ")}
-          {dealError && <> · <span style={{ color: "#b91c1c" }}>{dealError}</span></>}
+          <strong>{deal?.players ?? players} players</strong> · Hostages: {hostages.join(" then ")}
+          {dealError && (
+            <>
+              {" "}
+              · <span className="rules-chip-error">{dealError}</span>
+            </>
+          )}
         </aside>
       </section>
 

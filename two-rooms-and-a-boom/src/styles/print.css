@@ -1,8 +1,7 @@
-:root {
+.print-app {
   --ink: #14181f;
   --ink-dim: rgba(20, 24, 31, 0.68);
   --paper: #f5f7fa;
-  --panel: #ffffff;
   --red: #d92c20;
   --red-deep: #a51f16;
   --blue: #1d5bbf;
@@ -17,23 +16,13 @@
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
   --card-w: 2.5in;
   --card-h: 3.5in;
-}
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  margin: 0;
-  min-height: 100vh;
+  position: relative;
+  z-index: 1;
   color: var(--ink);
   font-family: var(--font-body);
+  line-height: 1.45;
+  padding: clamp(1.25rem, 4vw, 2.5rem) clamp(1rem, 4vw, 2.5rem) 2rem;
   background:
     linear-gradient(180deg, transparent 0%, rgba(29, 91, 191, 0.05) 40%, rgba(217, 44, 32, 0.06) 100%),
     repeating-linear-gradient(
@@ -51,108 +40,9 @@ body {
       rgba(20, 24, 31, 0.03) 48px
     ),
     var(--paper);
-  line-height: 1.45;
 }
 
-.noise {
-  pointer-events: none;
-  position: fixed;
-  inset: 0;
-  opacity: 0.035;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  z-index: 0;
-}
-
-.site-header,
-main,
-.site-footer {
-  position: relative;
-  z-index: 1;
-}
-
-.site-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1.1rem clamp(1rem, 4vw, 2.5rem);
-  border-bottom: 1px solid var(--line);
-  background: rgba(245, 247, 250, 0.85);
-  backdrop-filter: blur(8px);
-}
-
-.brand {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 0.95rem;
-  letter-spacing: 0.02em;
-}
-
-.header-nav {
-  display: flex;
-  gap: 1.25rem;
-}
-
-.header-nav a {
-  color: var(--ink);
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.9rem;
-  opacity: 0.65;
-}
-
-.header-nav a:hover {
-  opacity: 1;
-}
-
-.hero {
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: clamp(1.5rem, 4vw, 3rem);
-  align-items: center;
-  min-height: min(88vh, 760px);
-  padding: clamp(2rem, 6vw, 4.5rem) clamp(1rem, 4vw, 2.5rem);
-}
-
-.brand-mark {
-  margin: 0 0 0.75rem;
-  font-family: var(--font-display);
-  font-size: clamp(1.55rem, 4vw, 2.35rem);
-  line-height: 1;
-  letter-spacing: -0.02em;
-  background: linear-gradient(90deg, var(--red) 0%, var(--ink) 42%, var(--blue) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: brand-in 0.9s ease both;
-}
-
-.hero h1 {
-  margin: 0 0 1rem;
-  font-family: var(--font-display);
-  font-size: clamp(2rem, 5.2vw, 3.35rem);
-  line-height: 0.98;
-  letter-spacing: -0.03em;
-  max-width: 13ch;
-  animation: rise 0.8s 0.1s ease both;
-}
-
-.lede {
-  margin: 0 0 1.75rem;
-  max-width: 38ch;
-  font-size: 1.08rem;
-  color: var(--ink-dim);
-  animation: rise 0.8s 0.2s ease both;
-}
-
-.hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  animation: rise 0.8s 0.3s ease both;
-}
-
-.btn {
+.print-app .btn {
   appearance: none;
   border: 2px solid var(--ink);
   background: transparent;
@@ -161,6 +51,7 @@ main,
   font-weight: 700;
   font-size: 0.95rem;
   padding: 0.7rem 1.15rem;
+  border-radius: var(--radius-full);
   cursor: pointer;
   text-decoration: none;
   display: inline-flex;
@@ -169,137 +60,67 @@ main,
   transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
-.btn:hover {
+.print-app .btn:hover {
   transform: translateY(-1px);
 }
 
-.btn.primary {
+.print-app .btn.primary {
   background: var(--ink);
   border-color: var(--ink);
   color: #fff;
 }
 
-.btn.primary:hover {
+.print-app .btn.primary:hover {
   background: var(--red);
   border-color: var(--red);
 }
 
-.btn.ghost {
+.print-app .btn.ghost {
   background: rgba(255, 255, 255, 0.7);
 }
 
-.hero-visual {
-  position: relative;
-  min-height: 320px;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 0.75rem;
-  animation: rise 1s 0.15s ease both;
-}
-
-.room {
-  position: relative;
-  height: 260px;
-  border: 2px solid var(--ink);
-  background: linear-gradient(165deg, #fff 0%, #eef2f7 100%);
-  display: flex;
-  align-items: flex-end;
-  padding: 1rem;
-  overflow: hidden;
-}
-
-.room span {
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.room-a {
-  border-color: var(--blue);
-}
-
-.room-b {
-  border-color: var(--red);
-}
-
-.pulse {
-  position: absolute;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  top: 30%;
-  left: 50%;
-  translate: -50% -50%;
-  background: radial-gradient(circle, rgba(29, 91, 191, 0.28), transparent 70%);
-  animation: pulse 2.8s ease-in-out infinite;
-}
-
-.room-b .pulse {
-  background: radial-gradient(circle, rgba(217, 44, 32, 0.28), transparent 70%);
-}
-
-.pulse.delay {
-  animation-delay: 1.2s;
-}
-
-.boom-core {
-  width: 88px;
-  height: 88px;
-  border-radius: 50%;
-  background: var(--ink);
-  color: #fff;
-  display: grid;
-  place-items: center;
-  font-family: var(--font-display);
-  font-size: 0.85rem;
-  letter-spacing: 0.04em;
-  animation: boom-spin 6s linear infinite;
-  box-shadow: var(--shadow);
-}
-
-.panel {
-  margin: 0 clamp(1rem, 4vw, 2.5rem) 2.5rem;
+.print-app .panel {
+  margin: 0 0 2rem;
   padding: clamp(1.25rem, 3vw, 2rem);
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid var(--line);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow);
 }
 
-.panel-head h2 {
+.print-app .panel-head h2 {
   margin: 0 0 0.35rem;
   font-family: var(--font-display);
   font-size: clamp(1.4rem, 3vw, 1.9rem);
   letter-spacing: -0.02em;
 }
 
-.panel-head p {
+.print-app .panel-head p {
   margin: 0 0 1.25rem;
   color: var(--ink-dim);
 }
 
-.setup-grid {
+.print-app .setup-grid {
   display: grid;
   gap: 1.25rem;
 }
 
-.field {
+.print-app .field {
   display: grid;
   gap: 0.4rem;
 }
 
-.field > span,
-.field legend {
+.print-app .field > span,
+.print-app .field legend {
   font-weight: 700;
   font-size: 0.92rem;
 }
 
-.field input[type="number"] {
+.print-app .field input[type="number"] {
   width: min(140px, 100%);
   padding: 0.65rem 0.75rem;
   border: 2px solid var(--ink);
+  border-radius: var(--radius-sm);
   background: #fff;
   color: var(--ink);
   font: inherit;
@@ -307,26 +128,27 @@ main,
   font-size: 1.1rem;
 }
 
-.field small,
-.hint {
+.print-app .field small,
+.print-app .hint {
   color: var(--ink-dim);
   font-size: 0.85rem;
 }
 
-.pack {
+.print-app .pack {
   border: 1px solid var(--line);
+  border-radius: var(--radius-md);
   padding: 1rem;
   margin: 0;
 }
 
-.checks {
+.print-app .checks {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 0.65rem;
   margin-top: 0.75rem;
 }
 
-.check {
+.print-app .check {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 0.65rem;
@@ -334,25 +156,26 @@ main,
   padding: 0.7rem 0.75rem;
   background: #f8fafc;
   border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
   cursor: pointer;
 }
 
-.check:hover {
+.print-app .check:hover {
   border-color: rgba(20, 24, 31, 0.28);
 }
 
-.check input {
+.print-app .check input {
   margin-top: 0.2rem;
   width: 1rem;
   height: 1rem;
 }
 
-.check strong {
+.print-app .check strong {
   display: inline;
   margin-right: 0.35rem;
 }
 
-.check em {
+.print-app .check em {
   display: block;
   font-style: normal;
   font-size: 0.82rem;
@@ -360,8 +183,8 @@ main,
   margin-top: 0.2rem;
 }
 
-.rec,
-.req {
+.print-app .rec,
+.print-app .req {
   display: inline-block;
   font-family: var(--font-mono);
   font-size: 0.68rem;
@@ -369,78 +192,93 @@ main,
   text-transform: uppercase;
   padding: 0.1rem 0.35rem;
   margin-right: 0.25rem;
+  border-radius: 4px;
 }
 
-.rec {
+.print-app .rec {
   background: rgba(229, 161, 0, 0.2);
   color: #8a6200;
 }
 
-.req {
+.print-app .req {
   background: rgba(20, 24, 31, 0.06);
   color: var(--ink-dim);
 }
 
-.setup-actions {
+.print-app .setup-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.65rem;
 }
 
-.optional {
+.print-app .optional {
   font-weight: 500;
   opacity: 0.55;
   font-size: 0.85em;
 }
 
-.playsets {
+.print-app .playsets {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 0.65rem;
   margin-top: 0.35rem;
 }
 
-.playset-card {
+.print-app .playset-card {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 0.65rem;
   align-items: start;
   padding: 0.75rem;
   border: 2px solid var(--line);
+  border-radius: var(--radius-sm);
   background: #f8fafc;
   cursor: pointer;
   position: relative;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
-.playset-card input {
+.print-app .playset-card:hover {
+  border-color: rgba(20, 24, 31, 0.3);
+}
+
+.print-app .playset-card input {
   position: absolute;
   opacity: 0;
   pointer-events: none;
 }
 
-.playset-card.is-active {
+.print-app .playset-card.is-active {
   border-color: var(--ink);
   background: #fff;
   box-shadow: inset 3px 0 0 var(--red);
 }
 
-.playset-emoji {
-  font-size: 1.35rem;
+.print-app .playset-mark {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  background: linear-gradient(155deg, var(--blue) 0%, var(--red) 100%);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
   line-height: 1;
 }
 
-.playset-body {
+.print-app .playset-body {
   display: grid;
   gap: 0.2rem;
 }
 
-.playset-body em {
+.print-app .playset-body em {
   font-style: normal;
   font-size: 0.8rem;
   color: var(--ink-dim);
 }
 
-.playset-range {
+.print-app .playset-range {
   font-family: var(--font-mono);
   font-size: 0.68rem;
   letter-spacing: 0.04em;
@@ -448,59 +286,33 @@ main,
   opacity: 0.55;
 }
 
-.name-fields {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.name-field {
-  display: grid;
-  gap: 0.25rem;
-}
-
-.name-field span {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.04em;
-  opacity: 0.55;
-}
-
-.name-field input {
-  padding: 0.5rem 0.55rem;
-  border: 1px solid var(--line);
-  background: #fff;
-  font: inherit;
-  font-size: 0.9rem;
-}
-
-.deal-mode-check {
+.print-app .deal-mode-check {
   margin: 0;
 }
 
-.room-split {
+.print-app .room-split {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
   margin-bottom: 1.25rem;
 }
 
-.room-col {
+.print-app .room-col {
   border: 2px solid var(--ink);
+  border-radius: var(--radius-sm);
   padding: 0.85rem 1rem;
   background: #fff;
 }
 
-.room-col-a {
+.print-app .room-col-a {
   border-color: var(--blue);
 }
 
-.room-col-b {
+.print-app .room-col-b {
   border-color: var(--red);
 }
 
-.room-col h3 {
+.print-app .room-col h3 {
   margin: 0 0 0.5rem;
   font-family: var(--font-display);
   font-size: 1rem;
@@ -509,14 +321,14 @@ main,
   gap: 0.5rem;
 }
 
-.room-col h3 small {
+.print-app .room-col h3 small {
   font-family: var(--font-mono);
   font-size: 0.75rem;
   font-weight: 500;
   opacity: 0.55;
 }
 
-.room-col ul {
+.print-app .room-col ul {
   margin: 0;
   padding-left: 1.1rem;
   display: grid;
@@ -524,45 +336,40 @@ main,
   font-size: 0.92rem;
 }
 
-.buried-note {
-  margin-bottom: 1rem;
-  padding: 0.75rem 1rem;
-  border-left: 3px solid var(--grey);
-  background: rgba(91, 101, 115, 0.08);
-  font-size: 0.92rem;
-}
-
-.team-hidden.face::before {
+.print-app .team-hidden.face::before {
   background: #94a3b8;
 }
 
-.team-hidden .card-team {
+.print-app .team-hidden .card-team {
   color: #64748b;
 }
 
-.howto a {
-  color: var(--blue-deep);
-}
-
-.rules-chip {
+.print-app .rules-chip {
   margin-top: 1.25rem;
   padding: 0.85rem 1rem;
+  border-radius: var(--radius-sm);
   background: linear-gradient(90deg, rgba(29, 91, 191, 0.08), rgba(217, 44, 32, 0.08));
   border-left: 3px solid var(--accent);
   font-size: 0.95rem;
 }
 
-.screen-cards {
+.print-app .rules-chip-error {
+  color: var(--red-deep);
+  font-weight: 600;
+}
+
+.print-app .screen-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 1rem;
 }
 
-.card {
+.print-app .card {
   position: relative;
   width: 100%;
   aspect-ratio: 2.5 / 3.5;
   border: 2px solid #14181f;
+  border-radius: 10px;
   padding: 0.7rem 0.75rem 0.6rem;
   display: flex;
   flex-direction: column;
@@ -571,30 +378,30 @@ main,
   overflow: hidden;
 }
 
-.card.face::before {
+.print-app .card.face::before {
   content: "";
   position: absolute;
   inset: 0 0 auto 0;
   height: 8px;
 }
 
-.team-blue.face::before {
+.print-app .team-blue.face::before {
   background: var(--blue);
 }
 
-.team-red.face::before {
+.print-app .team-red.face::before {
   background: var(--red);
 }
 
-.team-grey.face::before {
+.print-app .team-grey.face::before {
   background: var(--grey);
 }
 
-.team-leader.face::before {
+.print-app .team-leader.face::before {
   background: var(--leader);
 }
 
-.card-top {
+.print-app .card-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -602,31 +409,31 @@ main,
   margin-bottom: 0.35rem;
 }
 
-.card-team,
-.card-num {
+.print-app .card-team,
+.print-app .card-num {
   font-family: var(--font-mono);
   font-size: 0.68rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
-.team-blue .card-team {
+.print-app .team-blue .card-team {
   color: var(--blue-deep);
 }
 
-.team-red .card-team {
+.print-app .team-red .card-team {
   color: var(--red-deep);
 }
 
-.team-grey .card-team {
+.print-app .team-grey .card-team {
   color: var(--grey);
 }
 
-.team-leader .card-team {
+.print-app .team-leader .card-team {
   color: var(--leader);
 }
 
-.card-name {
+.print-app .card-name {
   margin: 0 0 0.25rem;
   font-family: var(--font-display);
   font-size: 1.15rem;
@@ -634,21 +441,21 @@ main,
   letter-spacing: -0.02em;
 }
 
-.card-short {
+.print-app .card-short {
   margin: 0 0 0.5rem;
   font-size: 0.75rem;
   font-weight: 600;
   opacity: 0.65;
 }
 
-.card-ability {
+.print-app .card-ability {
   margin: 0;
   font-size: 0.72rem;
   line-height: 1.35;
   flex: 1;
 }
 
-.card-foot {
+.print-app .card-foot {
   margin-top: 0.5rem;
   font-family: var(--font-mono);
   font-size: 0.58rem;
@@ -657,25 +464,20 @@ main,
   opacity: 0.45;
 }
 
-.hostage-list {
+.print-app .hostage-list {
   margin: 0 0 0.5rem;
   padding-left: 1rem;
   font-size: 0.78rem;
 }
 
-.card.back {
-  background:
-    repeating-linear-gradient(
-      -32deg,
-      #14181f 0 10px,
-      #222833 10px 20px
-    );
+.print-app .card.back {
+  background: repeating-linear-gradient(-32deg, #14181f 0 10px, #222833 10px 20px);
   color: #f5f7fa;
   padding: 0;
   border-color: #0a0c10;
 }
 
-.back-inner {
+.print-app .back-inner {
   height: 100%;
   margin: 8px;
   border: 1px solid rgba(245, 247, 250, 0.3);
@@ -685,13 +487,13 @@ main,
   gap: 0.15rem;
 }
 
-.back-brand {
+.print-app .back-brand {
   font-family: var(--font-display);
   font-size: 0.95rem;
   letter-spacing: 0.02em;
 }
 
-.back-sub {
+.print-app .back-sub {
   font-family: var(--font-mono);
   font-size: 0.65rem;
   letter-spacing: 0.2em;
@@ -699,113 +501,27 @@ main,
   opacity: 0.7;
 }
 
-.back-boom {
+.print-app .back-boom {
   font-family: var(--font-display);
   font-size: 1.6rem;
   color: #f5a8a2;
 }
 
-.card.placeholder {
+.print-app .card.placeholder {
   border-style: dashed;
   opacity: 0.25;
   background: transparent;
 }
 
-.print-intro,
-.print-sheet {
+.print-app .print-intro,
+.print-app .print-sheet {
   display: none;
 }
 
-.sheet-label {
+.print-app .sheet-label {
   font-family: var(--font-display);
   font-size: 1rem;
   margin: 0 0 0.75rem;
-}
-
-.steps {
-  margin: 0;
-  padding-left: 1.2rem;
-  display: grid;
-  gap: 0.55rem;
-  color: var(--ink-dim);
-}
-
-.disclaimer {
-  margin: 1.25rem 0 0;
-  font-size: 0.85rem;
-  color: var(--ink-dim);
-}
-
-.site-footer {
-  padding: 1.5rem clamp(1rem, 4vw, 2.5rem) 2.5rem;
-  color: var(--ink-dim);
-  font-size: 0.85rem;
-}
-
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes brand-in {
-  from {
-    opacity: 0;
-    letter-spacing: 0.12em;
-  }
-  to {
-    opacity: 1;
-    letter-spacing: -0.02em;
-  }
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(0.85);
-    opacity: 0.55;
-  }
-  50% {
-    transform: scale(1.15);
-    opacity: 1;
-  }
-}
-
-@keyframes boom-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (max-width: 860px) {
-  .hero {
-    grid-template-columns: 1fr;
-    min-height: auto;
-  }
-
-  .hero h1 {
-    max-width: none;
-  }
-
-  .hero-visual {
-    min-height: 220px;
-  }
-
-  .room {
-    height: 180px;
-  }
-
-  .room-split {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media print {
@@ -819,12 +535,16 @@ main,
     color: #111;
   }
 
-  .noise,
   .no-print {
     display: none !important;
   }
 
-  .panel {
+  .print-app {
+    padding: 0;
+    background: none;
+  }
+
+  .print-app .panel {
     margin: 0;
     padding: 0;
     border: none;
@@ -832,42 +552,42 @@ main,
     background: transparent;
   }
 
-  .print-intro {
+  .print-app .print-intro {
     display: block;
     margin-bottom: 0.35in;
     color: #111;
   }
 
-  .print-intro h1 {
+  .print-app .print-intro h1 {
     font-family: var(--font-display);
     font-size: 18pt;
     margin: 0 0 0.12in;
   }
 
-  .print-intro p {
+  .print-app .print-intro p {
     margin: 0;
     font-size: 10pt;
   }
 
-  .print-sheet {
+  .print-app .print-sheet {
     display: block;
   }
 
-  .screen-cards {
+  .print-app .screen-cards {
     display: none !important;
   }
 
-  .sheet-page {
+  .print-app .sheet-page {
     break-after: page;
     page-break-after: always;
   }
 
-  .sheet-page:last-child {
+  .print-app .sheet-page:last-child {
     break-after: auto;
     page-break-after: auto;
   }
 
-  .card-grid {
+  .print-app .card-grid {
     display: grid;
     grid-template-columns: repeat(4, var(--card-w));
     grid-template-rows: repeat(2, var(--card-h));
@@ -875,25 +595,26 @@ main,
     justify-content: center;
   }
 
-  .card {
+  .print-app .card {
     width: var(--card-w);
     height: var(--card-h);
     aspect-ratio: auto;
+    border-radius: 0;
     break-inside: avoid;
     page-break-inside: avoid;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
-  .card-name {
+  .print-app .card-name {
     font-size: 14pt;
   }
 
-  .card-ability {
+  .print-app .card-ability {
     font-size: 7.5pt;
   }
 
-  .card.back .back-boom {
+  .print-app .card.back .back-boom {
     font-size: 22pt;
   }
 }

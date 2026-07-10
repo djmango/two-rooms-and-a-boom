@@ -15,6 +15,7 @@ export default function RoleCard({
     return (
       <div className="you-card-wrap">
         <button type="button" className="card-reveal" onClick={onReveal}>
+          <span className="card-reveal-ring" aria-hidden="true" />
           <span className="card-reveal-inner">
             <span className="peek">Tap to reveal your role</span>
           </span>

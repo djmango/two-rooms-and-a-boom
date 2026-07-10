@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import type { RoundInfo } from "@shared/game/types";
 
+const RING_RADIUS = 52;
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+
 export default function TimerPanel({
   round,
   clockSkew,
@@ -50,41 +53,53 @@ export default function TimerPanel({
       ? "Ready"
       : `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}`;
   const pct = remainingMs == null ? 1 : Math.max(0, Math.min(1, remainingMs / totalMs));
+  const isUrgent = secs != null && secs <= 30;
+  const dashOffset = RING_CIRCUMFERENCE * (1 - pct);
 
   return (
     <div className="timer-block">
       <div className="timer-meta">
         <span>
           {round
-            ? `Round ${round.index + 1} / ${round.total} · ${round.label}`
+            ? `Round ${round.index + 1} of ${round.total} · ${round.label}`
             : "Rounds"}
         </span>
-        <span>
-          {round ? `${round.hostages} hostage${round.hostages === 1 ? "" : "s"}` : ""}
+        <span className="pill pill-quiet">
+          {round ? `${round.hostages} hostage${round.hostages === 1 ? "" : "s"}` : "—"}
         </span>
       </div>
-      <div className={`timer-display ${secs != null && secs <= 30 ? "is-urgent" : ""}`}>
-        {display}
+
+      <div className="timer-ring-wrap">
+        <svg className="timer-ring" viewBox="0 0 120 120" role="img" aria-label={`${display} remaining`}>
+          <circle className="timer-ring-track" cx="60" cy="60" r={RING_RADIUS} />
+          <circle
+            className={`timer-ring-progress ${isUrgent ? "is-urgent" : ""}`}
+            cx="60"
+            cy="60"
+            r={RING_RADIUS}
+            strokeDasharray={RING_CIRCUMFERENCE}
+            strokeDashoffset={round ? dashOffset : 0}
+          />
+        </svg>
+        <div className={`timer-display ${isUrgent ? "is-urgent" : ""}`}>{display}</div>
       </div>
-      <div className="timer-bar">
-        <div className="timer-bar-fill" style={{ transform: `scaleX(${pct})` }} />
-      </div>
+
       {isHost && (
         <div className="host-timer-actions">
-          <button type="button" className="btn ghost" onClick={onStartRound}>
+          <button type="button" className="btn secondary" onClick={onStartRound}>
             Start round
           </button>
-          <button type="button" className="btn ghost" onClick={onPause}>
+          <button type="button" className="btn secondary" onClick={onPause}>
             {round?.paused ? "Resume" : "Pause"}
           </button>
-          <button type="button" className="btn ghost" onClick={onEndRound}>
+          <button type="button" className="btn secondary" onClick={onEndRound}>
             End round
           </button>
           <button type="button" className="btn ghost" onClick={onReshuffle}>
             Back to lobby
           </button>
           <button type="button" className="btn primary" onClick={onRevealAll}>
-            Reveal all / end
+            Reveal all &amp; end
           </button>
         </div>
       )}

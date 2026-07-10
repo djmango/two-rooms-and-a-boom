@@ -14,10 +14,12 @@ export default function App() {
 
       <header className="topbar">
         <NavLink className="brand" to="/">
-          Two Rooms and a Boom
+          Two Rooms <span className="brand-and">&amp; a Boom</span>
         </NavLink>
         <nav className="topnav">
-          <NavLink to="/print">Print deck</NavLink>
+          <NavLink to="/print" className="topnav-link">
+            Print deck
+          </NavLink>
         </nav>
       </header>
 

@@ -169,7 +169,7 @@ export default function GamePage() {
                             .filter((p) => p.id !== "custom")
                             .map((p) => (
                               <option key={p.id} value={p.id}>
-                                {p.emoji} {p.name}
+                                {p.name}
                               </option>
                             ))}
                         </select>
@@ -192,10 +192,10 @@ export default function GamePage() {
                   <div className="lobby-actions">
                     <button
                       type="button"
-                      className="btn ghost"
+                      className="btn secondary"
                       onClick={() => send({ type: "ready", ready: !meReady })}
                     >
-                      {meReady ? "Unready" : "I’m ready"}
+                      {meReady ? "Unready" : "Ready up"}
                     </button>
                     <button type="button" className="btn ghost danger" onClick={leave}>
                       Leave
