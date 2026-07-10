@@ -1,19 +1,19 @@
 import { DurableObject } from "cloudflare:workers";
-import { normalizeCode } from "./game/codes";
+import { normalizeCode } from "../shared/game/codes";
 import {
   PLAYSETS,
   assignRooms,
   buildDeck,
   getPlayset,
   hostagesFor,
-} from "./game/deck";
+} from "../shared/game/deck";
 import type {
   CardDef,
   ClientMessage,
   Phase,
   PublicState,
   ServerMessage,
-} from "./game/types";
+} from "../shared/game/types";
 
 export interface Env {
   GAME_ROOM: DurableObjectNamespace<GameRoom>;

@@ -1,4 +1,4 @@
-import WORDS from "../words.json";
+import WORDS from "./words.json";
 
 const WORD_LIST = WORDS as string[];
 

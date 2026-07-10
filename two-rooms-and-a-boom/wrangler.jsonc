@@ -1,15 +1,14 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "two-rooms-boom",
-  "main": "src/index.ts",
+  "main": "worker/index.ts",
   "compatibility_date": "2026-07-01",
+  "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
   "assets": {
-    "directory": "./public",
-    "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "html_handling": "auto-trailing-slash",
-    "run_worker_first": ["/api/*"]
+    "run_worker_first": ["/api/*"],
+    "binding": "ASSETS"
   },
   "durable_objects": {
     "bindings": [

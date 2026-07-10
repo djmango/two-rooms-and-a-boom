@@ -1,6 +1,6 @@
 import { GameRoom, type Env } from "./game-room";
-import { generateCode, isValidCode, normalizeCode } from "./game/codes";
-import { PLAYSETS, PACKS } from "./game/deck";
+import { generateCode, isValidCode, normalizeCode } from "../shared/game/codes";
+import { PLAYSETS, PACKS } from "../shared/game/deck";
 
 export { GameRoom };
 

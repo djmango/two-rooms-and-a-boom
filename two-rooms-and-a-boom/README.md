@@ -1,13 +1,16 @@
 # Two Rooms and a Boom
 
-Play online with friends (three-word room codes + live sync) or print a shuffled deck for the table.
+Vite + React UI on **Cloudflare Workers**, with live rooms on **Durable Objects**
+(hibernatable WebSockets). Print mode stays available for physical cards.
 
-## Stack
+## Why this stack
 
-- **Cloudflare Workers** + **Durable Objects** (hibernatable WebSockets) for each game room  
-  R2 would be wrong here — rooms need live coordination, not object storage.
-- Static assets for the UI and offline **print deck**
-- Easy codes like `coral-lantern-swift` (~1500³ combinations)
+| Need | Choice |
+|------|--------|
+| UI | Vite + React |
+| Hosting | Cloudflare Workers (SPA assets + API) |
+| Realtime rooms | Durable Objects (not R2/D1 — those aren’t for live coordination) |
+| Join codes | Three easy words (`coral-lantern-swift`) |
 
 ## Develop
 
@@ -15,8 +18,6 @@ Play online with friends (three-word room codes + live sync) or print a shuffled
 npm install
 npm run dev
 ```
-
-Open the local URL Wrangler prints (usually `http://127.0.0.1:8787`).
 
 ## Deploy
 
@@ -28,12 +29,12 @@ npm run deploy
 ## Play
 
 1. **Create room** → share the three-word code  
-2. Friends **Join with code** on their phones  
+2. Friends open `/play/<code>` on their phones  
 3. Host picks a playset → **Deal & start**  
-4. Each player taps to reveal their private role and goes to Room A/B  
-5. Host runs the round timer; after the last exchange, **Reveal all / end**
+4. Tap to reveal your private role → go to Room A/B  
+5. Host runs the timer; **Reveal all / end** when finished  
 
-Print mode stays at `/print.html` for physical cards.
+Print deck: `/print`
 
 ## Fan project
 

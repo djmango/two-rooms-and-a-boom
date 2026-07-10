@@ -4,3 +4,5 @@ node_modules/
 .DS_Store
 dist/
 *.log
+_legacy_public/
+worker-configuration.d.ts
