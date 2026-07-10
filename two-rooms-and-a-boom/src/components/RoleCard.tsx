@@ -3,8 +3,26 @@ import type { CardDef } from "@shared/game/types";
 
 const SWIPE_DEG_PER_PX = 180 / 130;
 const TAP_SLOP = 8;
+const HIDDEN_ANGLE = 0;
+const FULL_ANGLE = 180;
+const PEEK_ANGLE = -65;
+const FULL_SNAP_THRESHOLD = 90;
+const PEEK_SNAP_THRESHOLD = PEEK_ANGLE / 2;
 
-type DragInfo = { pointerId: number; startY: number; moved: boolean };
+type Stage = "hidden" | "peeking" | "revealed";
+type DragInfo = { pointerId: number; startY: number; base: number; moved: boolean };
+
+function restAngleFor(stage: Stage): number {
+  if (stage === "revealed") return FULL_ANGLE;
+  if (stage === "peeking") return PEEK_ANGLE;
+  return HIDDEN_ANGLE;
+}
+
+function resolveStage(finalAngle: number): Stage {
+  if (finalAngle >= FULL_SNAP_THRESHOLD) return "revealed";
+  if (finalAngle <= PEEK_SNAP_THRESHOLD) return "peeking";
+  return "hidden";
+}
 
 export default function RoleCard({
   card,
@@ -17,19 +35,21 @@ export default function RoleCard({
   onReveal: () => void;
   onHide?: () => void;
 }) {
+  const [peeking, setPeeking] = useState(false);
   const [dragAngle, setDragAngle] = useState<number | null>(null);
   const drag = useRef<DragInfo | null>(null);
 
   if (!card) return null;
 
+  const stage: Stage = revealed ? "revealed" : peeking ? "peeking" : "hidden";
   const dragging = dragAngle !== null;
-  const angle = dragAngle ?? (revealed ? 180 : 0);
-  const frontProgress = Math.max(0, Math.min(1, Math.min(angle, 90) / 90));
+  const angle = dragAngle ?? restAngleFor(stage);
+  const frontProgress = Math.max(0, Math.min(1, Math.min(Math.abs(angle), 90) / 90));
   const peekOpacity = Math.max(0, Math.min(1, frontProgress * 1.6 - 0.15));
 
-  function settle(finalAngle: number) {
-    setDragAngle(null);
-    if (finalAngle >= 90) {
+  function applyStage(target: Stage) {
+    setPeeking(target === "peeking");
+    if (target === "revealed") {
       if (!revealed) onReveal();
     } else if (revealed) {
       onHide?.();
@@ -39,8 +59,9 @@ export default function RoleCard({
   function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
     if (e.pointerType === "mouse" && e.button !== 0) return;
     e.currentTarget.setPointerCapture(e.pointerId);
-    drag.current = { pointerId: e.pointerId, startY: e.clientY, moved: false };
-    setDragAngle(revealed ? 180 : 0);
+    const base = restAngleFor(stage);
+    drag.current = { pointerId: e.pointerId, startY: e.clientY, base, moved: false };
+    setDragAngle(base);
   }
 
   function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
@@ -48,8 +69,7 @@ export default function RoleCard({
     if (!d || d.pointerId !== e.pointerId) return;
     const delta = d.startY - e.clientY;
     if (Math.abs(delta) > TAP_SLOP) d.moved = true;
-    const base = revealed ? 180 : 0;
-    const next = Math.max(0, Math.min(180, base + delta * SWIPE_DEG_PER_PX));
+    const next = Math.max(PEEK_ANGLE, Math.min(FULL_ANGLE, d.base + delta * SWIPE_DEG_PER_PX));
     setDragAngle(next);
   }
 
@@ -65,11 +85,12 @@ export default function RoleCard({
     }
     if (!d.moved) {
       setDragAngle(null);
-      if (revealed) onHide?.();
-      else onReveal();
+      applyStage(revealed ? "hidden" : "revealed");
       return;
     }
-    settle(dragAngle ?? (revealed ? 180 : 0));
+    const finalAngle = dragAngle ?? d.base;
+    setDragAngle(null);
+    applyStage(resolveStage(finalAngle));
   }
 
   function handlePointerCancel() {
@@ -80,9 +101,15 @@ export default function RoleCard({
   function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
     if (e.key !== "Enter" && e.key !== " ") return;
     e.preventDefault();
-    if (revealed) onHide?.();
-    else onReveal();
+    applyStage(revealed ? "hidden" : "revealed");
   }
+
+  const ariaLabel =
+    stage === "revealed"
+      ? "Your role card. Swipe down or tap to hide it."
+      : stage === "peeking"
+        ? "Your role card, peeking at your team. Swipe up to fully reveal it, swipe down or tap to hide it."
+        : "Your role card. Swipe up to fully reveal it, swipe down to peek at your team, or tap to reveal it.";
 
   return (
     <div className="you-card-wrap">
@@ -91,11 +118,7 @@ export default function RoleCard({
         role="button"
         tabIndex={0}
         aria-pressed={revealed}
-        aria-label={
-          revealed
-            ? "Your role card. Swipe down or tap to hide it."
-            : "Your role card. Swipe up or tap to reveal it."
-        }
+        aria-label={ariaLabel}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -113,7 +136,9 @@ export default function RoleCard({
             <span className="card-reveal-ring" aria-hidden="true" />
             <div className="card-reveal-inner">
               <span className="peek" style={{ opacity: 1 - peekOpacity }}>
-                Swipe up to reveal your role
+                Swipe up to reveal
+                <br />
+                swipe down to peek team
               </span>
               <div className={`peek-team team-${card.team}`} style={{ opacity: peekOpacity }}>
                 <span className="peek-team-dot" aria-hidden="true" />
