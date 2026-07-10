@@ -31,6 +31,7 @@ export interface PublicPlayer {
   ready: boolean;
   isHost: boolean;
   isLeader: boolean;
+  isBot: boolean;
   room: "A" | "B" | null;
 }
 

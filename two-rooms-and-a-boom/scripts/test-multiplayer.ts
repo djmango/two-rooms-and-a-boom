@@ -384,8 +384,75 @@ async function main() {
   host2.close();
   guests.forEach((g) => g.close());
 
+  await testTestMode();
+
   console.log(failed ? `\n${failed} MULTIPLAYER FAILURES` : "\nALL MULTIPLAYER TESTS PASSED");
   process.exit(failed ? 1 : 0);
+}
+
+async function testTestMode() {
+  // Creating a room as "test" (any case/whitespace) should drop in ready
+  // bot players so a solo dev can start a game without extra devices.
+  const createRes = await fetch(`${BASE}/api/rooms`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ hostName: " TeSt ", playsetId: "basic", playerCount: 10 }),
+  });
+  const created = await createRes.json();
+
+  const info = await fetch(`${BASE}/api/rooms/${created.code}/info`).then((r) => r.json());
+  assert(info.playerCount >= 4, `test-mode room seeded with players (${info.playerCount})`);
+
+  const host = new Client();
+  await host.connect(created.code);
+  host.send({ type: "hello", name: "TeSt", playerId: created.playerId, secret: created.secret });
+  const welcome = await host.wait((m) => m.type === "welcome");
+  const bots = welcome.state.players.filter((p: any) => p.isBot);
+  assert(bots.length >= 3, `bots seeded (${bots.length})`);
+  assert(bots.every((p: any) => p.ready && p.connected), "seeded bots are ready and connected");
+
+  // Solo host can start immediately without any other real device joining.
+  host.send({ type: "start" });
+  const started = await host.wait((m) => m.type === "state" && m.state?.phase === "playing");
+  assert(started.state.phase === "playing", "test-mode game starts solo");
+  assert(started.state.you?.card?.name, `solo host dealt a card (${started.state.you?.card?.name})`);
+
+  // A second "test" room (via a guest joining, not creating) should also
+  // seed bots, and joining twice must not seed a duplicate set.
+  const createRes2 = await fetch(`${BASE}/api/rooms`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ hostName: "Real Host", playsetId: "basic", playerCount: 10 }),
+  });
+  const created2 = await createRes2.json();
+  const host2 = new Client();
+  await host2.connect(created2.code);
+  host2.send({ type: "hello", name: "Real Host", playerId: created2.playerId, secret: created2.secret });
+  await host2.wait((m) => m.type === "welcome");
+
+  const guest = new Client();
+  await guest.connect(created2.code);
+  guest.send({ type: "hello", name: "TEST" });
+  await guest.wait((m) => m.type === "welcome");
+
+  const afterGuest = await host2.wait((m) => m.type === "state" && m.state.players.length > 2);
+  const botsFromGuest = afterGuest.state.players.filter((p: any) => p.isBot);
+  assert(botsFromGuest.length >= 3, `guest joining as TEST seeds bots (${botsFromGuest.length})`);
+
+  const guest2 = new Client();
+  await guest2.connect(created2.code);
+  guest2.send({ type: "hello", name: "test" });
+  await guest2.wait((m) => m.type === "welcome");
+  const afterSecondTest = await host2.wait(
+    (m) => m.type === "state" && m.state.players.some((p: any) => p.name === "test")
+  );
+  const botCountAfter = afterSecondTest.state.players.filter((p: any) => p.isBot).length;
+  assert(botCountAfter === botsFromGuest.length, "a second 'test' joiner does not duplicate bots");
+
+  host.close();
+  host2.close();
+  guest.close();
+  guest2.close();
 }
 
 main().catch((e) => {

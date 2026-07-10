@@ -28,6 +28,7 @@ interface PlayerRecord {
   card: CardDef | null;
   room: "A" | "B" | null;
   lastSeen: number;
+  isBot?: boolean;
 }
 
 interface RoomState {
@@ -57,6 +58,31 @@ interface WsAttach {
 const MAX_PLAYERS = 30;
 const IDLE_ALARM_MS = 1000 * 60 * 60 * 6; // 6h cleanup
 const NAME_MAX = 24;
+
+// Joining or creating a room as "test" (any case) drops in a handful of
+// ready bot players so solo dev/testing doesn't need extra devices/tabs.
+const TEST_MODE_NAME = "test";
+const TEST_BOT_NAMES = ["Agent Nova", "Agent Blitz", "Agent Comet", "Agent Sable", "Agent Rex"];
+
+function isTestModeName(name: string): boolean {
+  return name.trim().toLowerCase() === TEST_MODE_NAME;
+}
+
+function seedTestBots(state: RoomState): void {
+  if (state.players.some((p) => p.isBot)) return;
+  for (const name of TEST_BOT_NAMES) {
+    state.players.push({
+      id: randomId(),
+      secret: randomId(),
+      name,
+      ready: true,
+      card: null,
+      room: null,
+      lastSeen: Date.now(),
+      isBot: true,
+    });
+  }
+}
 
 function randomId(): string {
   const buf = new Uint8Array(16);
@@ -186,6 +212,8 @@ export class GameRoom extends DurableObject<Env> {
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
+
+    if (isTestModeName(hostName)) seedTestBots(state);
 
     await this.save(state);
     return json({
@@ -412,6 +440,8 @@ export class GameRoom extends DurableObject<Env> {
         state.players.push(player);
       }
     }
+
+    if (state.phase === "lobby" && isTestModeName(player.name)) seedTestBots(state);
 
     ws.serializeAttachment({ playerId: player.id } satisfies WsAttach);
     await this.save(state);
@@ -647,10 +677,11 @@ export class GameRoom extends DurableObject<Env> {
       players: state.players.map((p) => ({
         id: p.id,
         name: p.name,
-        connected: this.isConnected(p.id),
+        connected: p.isBot ? true : this.isConnected(p.id),
         ready: p.ready,
         isHost: p.id === state.hostId,
         isLeader: p.room != null && state.leaders[p.room] === p.id,
+        isBot: Boolean(p.isBot),
         room: state.phase === "lobby" ? null : p.room,
       })),
       hostId: state.hostId,

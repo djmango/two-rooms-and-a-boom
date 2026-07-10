@@ -938,6 +938,16 @@ main {
   color: #14161a;
 }
 
+.bot-tag {
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  background: var(--panel-2);
+  border: 1px solid var(--line-2);
+  color: var(--ink-dim);
+}
+
 .ready-tag {
   font-size: 0.6rem;
   text-transform: uppercase;
