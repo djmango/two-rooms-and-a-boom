@@ -15,6 +15,7 @@ downloads/
 eggs/
 .eggs/
 lib/
+!two-rooms-and-a-boom/src/lib/
 lib64/
 parts/
 sdist/
