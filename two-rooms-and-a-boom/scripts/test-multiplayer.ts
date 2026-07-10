@@ -148,6 +148,96 @@ async function main() {
     "public players omit cards"
   );
 
+  // --- Room leader, hostage selection, and usurpation voting ---
+  const nameToClient: Record<string, Client> = {
+    Host: host,
+    Alex: guests[0]!,
+    Blake: guests[1]!,
+    Casey: guests[2]!,
+    Drew: guests[3]!,
+    Eli: guests[4]!,
+  };
+
+  const leaderA = started.state.players.find((p: any) => p.room === "A" && p.isLeader);
+  const leaderB = started.state.players.find((p: any) => p.room === "B" && p.isLeader);
+  assert(!!leaderA && !!leaderB, `each room has a leader (A=${leaderA?.name}, B=${leaderB?.name})`);
+  assert(
+    started.state.players.filter((p: any) => p.room === "A" && p.isLeader).length === 1,
+    "exactly one leader in room A"
+  );
+  assert(
+    started.state.players.filter((p: any) => p.room === "B" && p.isLeader).length === 1,
+    "exactly one leader in room B"
+  );
+  assert(
+    started.state.rooms?.A?.leaderId === leaderA.id && started.state.rooms?.B?.leaderId === leaderB.id,
+    "rooms.leaderId matches players' isLeader flags"
+  );
+
+  const leaderAClient = nameToClient[leaderA.name]!;
+  const roommateA = started.state.players.find((p: any) => p.room === "A" && p.id !== leaderA.id);
+  const nonLeaderAClient = nameToClient[roommateA.name]!;
+
+  nonLeaderAClient.send({ type: "select_hostages", playerIds: [] });
+  const hostageDenied = await nonLeaderAClient.wait((m) => m.type === "error");
+  assert(
+    /leader/i.test(hostageDenied.message || ""),
+    `non-leader denied hostage pick: ${hostageDenied.message}`
+  );
+
+  leaderAClient.send({ type: "select_hostages", playerIds: [leaderA.id] });
+  const selfHostage = await leaderAClient.wait((m) => m.type === "error");
+  assert(
+    /leader can.t be a hostage/i.test(selfHostage.message || ""),
+    `leader can't select self as hostage: ${selfHostage.message}`
+  );
+
+  leaderAClient.send({ type: "select_hostages", playerIds: [roommateA.id] });
+  const hostagePicked = await leaderAClient.wait(
+    (m) => m.type === "state" && m.state?.rooms?.A?.hostageIds?.includes(roommateA.id)
+  );
+  assert(
+    hostagePicked.state.rooms.A.hostageIds.includes(roommateA.id),
+    `hostage selection recorded (${roommateA.name})`
+  );
+
+  const roomBOthers = started.state.players.filter((p: any) => p.room === "B" && p.id !== leaderB.id);
+  assert(roomBOthers.length >= 2, `room B has enough members to test voting (${roomBOthers.length})`);
+  const candidate = roomBOthers[0];
+  const otherVoter = roomBOthers[1];
+  const leaderBClient = nameToClient[leaderB.name]!;
+  const otherVoterClient = nameToClient[otherVoter.name]!;
+
+  leaderBClient.send({ type: "vote_leader", targetId: candidate.id });
+  const firstVote = await leaderBClient.wait(
+    (m) => m.type === "state" && m.state?.rooms?.B?.votes?.[leaderB.id] === candidate.id
+  );
+  assert(
+    firstVote.state.rooms.B.votes[leaderB.id] === candidate.id,
+    "first usurpation vote recorded, leader not yet replaced"
+  );
+  assert(
+    firstVote.state.rooms.B.leaderId === leaderB.id,
+    "leadership unchanged after a single vote (no majority yet)"
+  );
+
+  otherVoterClient.send({ type: "vote_leader", targetId: candidate.id });
+  const leadershipChanged = await otherVoterClient.wait(
+    (m) => m.type === "state" && m.state?.rooms?.B?.leaderId === candidate.id
+  );
+  assert(
+    leadershipChanged.state.rooms.B.leaderId === candidate.id,
+    `room B leadership transferred to ${candidate.name} by majority vote`
+  );
+  assert(
+    leadershipChanged.state.players.find((p: any) => p.id === candidate.id)?.isLeader === true,
+    "new leader's isLeader flag is set"
+  );
+  assert(
+    leadershipChanged.state.players.find((p: any) => p.id === leaderB.id)?.isLeader === false,
+    "old leader's isLeader flag is cleared"
+  );
+
   const gState = await guests[0]!.wait((m) => m.type === "state" && m.state?.phase === "playing");
   assert(gState.state.you?.card?.name, `guest card ${gState.state.you?.card?.name}`);
 
@@ -201,6 +291,14 @@ async function main() {
   host.send({ type: "end_round" });
   const endedRound = await host.wait((m) => m.type === "state" && m.state?.round?.index === 1);
   assert(endedRound.state.round.index === 1, `round index ${endedRound.state.round.index}`);
+  assert(
+    endedRound.state.players.find((p: any) => p.id === roommateA.id)?.room === "B",
+    `hostage ${roommateA.name} exchanged from room A into room B at end of round`
+  );
+  assert(
+    endedRound.state.rooms.A.hostageIds.length === 0 && endedRound.state.rooms.B.hostageIds.length === 0,
+    "hostage selections cleared after exchange"
+  );
 
   host.close();
   await new Promise((r) => setTimeout(r, 150));

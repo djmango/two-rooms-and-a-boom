@@ -929,6 +929,15 @@ main {
   color: #fff;
 }
 
+.leader-tag {
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  background: var(--gold);
+  color: #14161a;
+}
+
 .ready-tag {
   font-size: 0.6rem;
   text-transform: uppercase;
@@ -1126,6 +1135,91 @@ main {
 .room-badge[data-room="B"] {
   color: var(--red);
   border-color: var(--red);
+}
+
+/* ---------- Leader panel ---------- */
+
+.leader-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 0.9rem 1rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.leader-status {
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.leader-you-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--gold);
+}
+
+.leader-crown {
+  font-size: 1rem;
+}
+
+.leader-who {
+  color: var(--ink-dim);
+  font-weight: 400;
+}
+
+.leader-who strong {
+  color: var(--ink);
+}
+
+.hostage-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.hostage-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.hostage-list label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.leader-vote {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.vote-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.vote-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  padding: 0.35rem 0.6rem;
 }
 
 /* ---------- Timer ---------- */

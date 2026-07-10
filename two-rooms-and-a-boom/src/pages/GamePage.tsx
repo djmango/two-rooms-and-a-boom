@@ -5,6 +5,7 @@ import { loadSession, normalizeCode } from "@/lib/api";
 import type { PlaysetDef } from "@shared/game/types";
 import PlayerList from "@/components/PlayerList";
 import RoleCard from "@/components/RoleCard";
+import LeaderPanel from "@/components/LeaderPanel";
 import TimerPanel from "@/components/TimerPanel";
 import QrCode from "@/components/QrCode";
 
@@ -253,6 +254,21 @@ export default function GamePage() {
                     <div className="room-badge" data-room={state.you.room}>
                       Go to Room {state.you.room}
                     </div>
+                  )}
+
+                  {state.you?.room && state.rooms && (
+                    <LeaderPanel
+                      players={state.players}
+                      youId={state.you.id}
+                      room={state.you.room}
+                      roomInfo={state.rooms[state.you.room]}
+                      isLeader={Boolean(state.you.isLeader)}
+                      hostagesAllowed={state.round?.hostages ?? 0}
+                      onVote={(targetId) => send({ type: "vote_leader", targetId })}
+                      onSelectHostages={(playerIds) =>
+                        send({ type: "select_hostages", playerIds })
+                      }
+                    />
                   )}
 
                   <TimerPanel
