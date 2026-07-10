@@ -81,7 +81,7 @@ export class GameRoom extends DurableObject<Env> {
     super(ctx, env);
     this.ctx.blockConcurrencyWhile(async () => {
       const existing = await this.ctx.storage.get<RoomState>("room");
-      if (existing) this.cache = existing;
+      if (existing) this.cache = migrateState(existing);
     });
   }
 
@@ -728,6 +728,17 @@ function migrateState(state: RoomState): RoomState {
   if (!state.leaders) state.leaders = { A: null, B: null };
   if (!state.hostageSelections) state.hostageSelections = { A: [], B: [] };
   if (!state.leaderVotes) state.leaderVotes = { A: {}, B: {} };
+
+  // Backfill a leader for rooms that were already mid-game before the
+  // leader feature shipped, so they aren't stuck permanently leaderless.
+  if (state.phase === "playing" || state.phase === "ended") {
+    for (const room of ["A", "B"] as const) {
+      if (state.leaders[room]) continue;
+      const members = state.players.filter((p) => p.room === room).map((p) => p.id);
+      if (members.length) state.leaders[room] = pickRandom(members);
+    }
+  }
+
   return state;
 }
 
