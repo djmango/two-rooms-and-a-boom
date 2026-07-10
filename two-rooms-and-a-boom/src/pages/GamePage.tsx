@@ -31,7 +31,7 @@ export default function GamePage() {
   const [nameDraft, setNameDraft] = useState(initialName);
   const [cardRevealed, setCardRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [shareOpen, setShareOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(true);
 
   useEffect(() => {
     if (!code) {
@@ -102,26 +102,12 @@ export default function GamePage() {
             {copied && <span className="copy-toast">Copied</span>}
             <button
               type="button"
-              className="btn ghost share-btn"
+              className="btn secondary share-btn"
               onClick={() => setShareOpen((v) => !v)}
               aria-expanded={shareOpen}
-              aria-label="Share room"
-              title="Share room"
             >
-              Share
+              {shareOpen ? "Hide share" : "Share"}
             </button>
-          </div>
-          <div className="conn" data-status={conn === "live" ? "live" : conn === "offline" ? "offline" : "reconnecting"}>
-            <span className="conn-dot" />
-            <span className="conn-text">
-              {conn === "live"
-                ? "Live"
-                : conn === "offline"
-                  ? "Offline"
-                  : conn === "reconnecting"
-                    ? "Reconnecting…"
-                    : "Connecting…"}
-            </span>
           </div>
         </header>
 
