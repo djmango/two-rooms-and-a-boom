@@ -30,7 +30,14 @@ export interface PublicPlayer {
   connected: boolean;
   ready: boolean;
   isHost: boolean;
+  isLeader: boolean;
   room: "A" | "B" | null;
+}
+
+export interface RoomLeaderInfo {
+  leaderId: string | null;
+  hostageIds: string[];
+  votes: Record<string, string>;
 }
 
 export interface RoundInfo {
@@ -54,10 +61,12 @@ export interface PublicState {
   hostId: string | null;
   round: RoundInfo | null;
   buriedPresent: boolean;
+  rooms: { A: RoomLeaderInfo; B: RoomLeaderInfo } | null;
   you: {
     id: string;
     name: string;
     isHost: boolean;
+    isLeader: boolean;
     card: CardDef | null;
     room: "A" | "B" | null;
   } | null;
@@ -77,6 +86,8 @@ export type ClientMessage =
   | { type: "end_round" }
   | { type: "reveal_all" }
   | { type: "kick"; playerId: string }
+  | { type: "vote_leader"; targetId: string | null }
+  | { type: "select_hostages"; playerIds: string[] }
   | { type: "ping" };
 
 export type ServerMessage =

@@ -43,6 +43,9 @@ interface RoomState {
   roundEndsAt: number | null;
   roundPaused: boolean;
   roundPausedRemainingMs: number | null;
+  leaders: { A: string | null; B: string | null };
+  hostageSelections: { A: string[]; B: string[] };
+  leaderVotes: { A: Record<string, string>; B: Record<string, string> };
   createdAt: number;
   updatedAt: number;
 }
@@ -85,7 +88,7 @@ export class GameRoom extends DurableObject<Env> {
   private async load(): Promise<RoomState | null> {
     if (this.cache) return this.cache;
     const existing = await this.ctx.storage.get<RoomState>("room");
-    this.cache = existing ?? null;
+    this.cache = existing ? migrateState(existing) : null;
     return this.cache;
   }
 
@@ -177,6 +180,9 @@ export class GameRoom extends DurableObject<Env> {
       roundEndsAt: null,
       roundPaused: false,
       roundPausedRemainingMs: null,
+      leaders: { A: null, B: null },
+      hostageSelections: { A: [], B: [] },
+      leaderVotes: { A: {}, B: {} },
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
@@ -304,6 +310,12 @@ export class GameRoom extends DurableObject<Env> {
           state.players = state.players.filter((p) => p.id !== msg.playerId);
           this.closePlayerSockets(msg.playerId, 4000, "Kicked");
           break;
+        case "vote_leader":
+          this.voteLeader(state, player.id, msg.targetId);
+          break;
+        case "select_hostages":
+          this.selectHostages(state, player.id, msg.playerIds);
+          break;
         default:
           throw new Error("Unknown action");
       }
@@ -424,11 +436,13 @@ export class GameRoom extends DurableObject<Env> {
     const rooms = assignRooms(n);
     const order = shuffleIndices(n);
 
+    const roomMembers: { A: string[]; B: string[] } = { A: [], B: [] };
     for (let i = 0; i < n; i += 1) {
       const p = state.players[order[i]!]!;
       p.card = cards[i]!;
       p.room = rooms[i]!;
       p.ready = false;
+      roomMembers[p.room].push(p.id);
     }
 
     state.buried = buried;
@@ -437,6 +451,12 @@ export class GameRoom extends DurableObject<Env> {
     state.roundEndsAt = null;
     state.roundPaused = false;
     state.roundPausedRemainingMs = null;
+    state.leaders = {
+      A: pickRandom(roomMembers.A),
+      B: pickRandom(roomMembers.B),
+    };
+    state.hostageSelections = { A: [], B: [] };
+    state.leaderVotes = { A: {}, B: {} };
   }
 
   private async reshuffle(state: RoomState, actorId: string): Promise<void> {
@@ -446,6 +466,9 @@ export class GameRoom extends DurableObject<Env> {
     state.buried = null;
     state.roundIndex = 0;
     state.roundEndsAt = null;
+    state.leaders = { A: null, B: null };
+    state.hostageSelections = { A: [], B: [] };
+    state.leaderVotes = { A: {}, B: {} };
     for (const p of state.players) {
       p.card = null;
       p.room = null;
@@ -489,11 +512,98 @@ export class GameRoom extends DurableObject<Env> {
 
   private endRound(state: RoomState, actorId: string): void {
     this.requireHost(state, actorId);
+    this.exchangeHostages(state);
     state.roundEndsAt = null;
     state.roundPaused = false;
     state.roundPausedRemainingMs = null;
     const rounds = roundsFor(getPlayset(state.playsetId), state.players.length);
     state.roundIndex = Math.min(rounds.length - 1, state.roundIndex + 1);
+  }
+
+  private exchangeHostages(state: RoomState): void {
+    for (const id of state.hostageSelections.A) {
+      const p = state.players.find((pp) => pp.id === id);
+      if (p && p.room === "A") p.room = "B";
+    }
+    for (const id of state.hostageSelections.B) {
+      const p = state.players.find((pp) => pp.id === id);
+      if (p && p.room === "B") p.room = "A";
+    }
+    state.hostageSelections = { A: [], B: [] };
+    // Room membership just changed, so clear stale usurpation votes.
+    state.leaderVotes = { A: {}, B: {} };
+  }
+
+  private selectHostages(state: RoomState, actorId: string, playerIds: string[]): void {
+    if (state.phase !== "playing") throw new Error("Hostages can only be picked while playing.");
+    const actor = state.players.find((p) => p.id === actorId);
+    if (!actor?.room) throw new Error("You are not assigned to a room.");
+    if (state.leaders[actor.room] !== actorId) {
+      throw new Error("Only your room's leader can select hostages.");
+    }
+
+    const rounds = roundsFor(getPlayset(state.playsetId), state.players.length);
+    const roundIndex = Math.min(state.roundIndex, rounds.length - 1);
+    const maxHostages = rounds[roundIndex]!.hostages;
+
+    const ids = [...new Set(playerIds)];
+    if (ids.length > maxHostages) {
+      throw new Error(`You can only send ${maxHostages} hostage${maxHostages === 1 ? "" : "s"} this round.`);
+    }
+    for (const id of ids) {
+      if (id === actorId) throw new Error("The leader can't be a hostage.");
+      const p = state.players.find((pp) => pp.id === id);
+      if (!p || p.room !== actor.room) throw new Error("Hostages must be from your own room.");
+    }
+
+    state.hostageSelections[actor.room] = ids;
+  }
+
+  private voteLeader(state: RoomState, actorId: string, targetId: string | null): void {
+    if (state.phase !== "playing") throw new Error("Leadership votes only happen while playing.");
+    const actor = state.players.find((p) => p.id === actorId);
+    if (!actor?.room) throw new Error("You are not assigned to a room.");
+    const room = actor.room;
+
+    if (targetId == null) {
+      delete state.leaderVotes[room][actorId];
+      return;
+    }
+
+    const target = state.players.find((p) => p.id === targetId);
+    if (!target || target.room !== room) {
+      throw new Error("You can only vote for someone in your own room.");
+    }
+
+    state.leaderVotes[room][actorId] = targetId;
+    this.tallyLeaderVotes(state, room);
+  }
+
+  private tallyLeaderVotes(state: RoomState, room: "A" | "B"): void {
+    const members = state.players.filter((p) => p.room === room);
+    const memberIds = new Set(members.map((p) => p.id));
+    const votes = state.leaderVotes[room];
+
+    const tally = new Map<string, number>();
+    for (const [voterId, targetId] of Object.entries(votes)) {
+      if (!memberIds.has(voterId)) {
+        delete votes[voterId];
+        continue;
+      }
+      tally.set(targetId, (tally.get(targetId) ?? 0) + 1);
+    }
+
+    const majority = Math.floor(members.length / 2) + 1;
+    for (const [candidateId, count] of tally) {
+      if (count >= majority && memberIds.has(candidateId)) {
+        state.leaders[room] = candidateId;
+        state.leaderVotes[room] = {};
+        state.hostageSelections[room] = state.hostageSelections[room].filter(
+          (id) => id !== candidateId
+        );
+        return;
+      }
+    }
   }
 
   private isConnected(playerId: string): boolean {
@@ -540,6 +650,7 @@ export class GameRoom extends DurableObject<Env> {
         connected: this.isConnected(p.id),
         ready: p.ready,
         isHost: p.id === state.hostId,
+        isLeader: p.room != null && state.leaders[p.room] === p.id,
         room: state.phase === "lobby" ? null : p.room,
       })),
       hostId: state.hostId,
@@ -557,11 +668,27 @@ export class GameRoom extends DurableObject<Env> {
               remainingMs,
             },
       buriedPresent: Boolean(state.buried),
+      rooms:
+        state.phase === "lobby"
+          ? null
+          : {
+              A: {
+                leaderId: state.leaders.A,
+                hostageIds: state.hostageSelections.A,
+                votes: state.leaderVotes.A,
+              },
+              B: {
+                leaderId: state.leaders.B,
+                hostageIds: state.hostageSelections.B,
+                votes: state.leaderVotes.B,
+              },
+            },
       you: viewer
         ? {
             id: viewer.id,
             name: viewer.name,
             isHost: viewer.id === state.hostId,
+            isLeader: viewer.room != null && state.leaders[viewer.room] === viewer.id,
             card:
               state.phase === "lobby"
                 ? null
@@ -595,6 +722,20 @@ export class GameRoom extends DurableObject<Env> {
 function sanitizeName(name: string): string {
   const cleaned = name.replace(/\s+/g, " ").trim().slice(0, NAME_MAX);
   return cleaned || "Player";
+}
+
+function migrateState(state: RoomState): RoomState {
+  if (!state.leaders) state.leaders = { A: null, B: null };
+  if (!state.hostageSelections) state.hostageSelections = { A: [], B: [] };
+  if (!state.leaderVotes) state.leaderVotes = { A: {}, B: {} };
+  return state;
+}
+
+function pickRandom(ids: string[]): string | null {
+  if (!ids.length) return null;
+  const buf = new Uint32Array(1);
+  crypto.getRandomValues(buf);
+  return ids[buf[0]! % ids.length]!;
 }
 
 function clamp(n: number, min: number, max: number): number {

@@ -39,6 +39,11 @@ export default function PlayerList({
                 {p.room != null && (
                   <span className={`room-tag ${p.room.toLowerCase()}`}>Room {p.room}</span>
                 )}
+                {p.isLeader && (
+                  <span className="leader-tag" title="Room leader">
+                    ♛ Leader
+                  </span>
+                )}
                 {phase === "lobby" && (
                   <span className="ready-tag" data-ready={p.ready}>
                     {p.ready ? "Ready" : "Not ready"}
