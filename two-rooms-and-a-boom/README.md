@@ -9,7 +9,7 @@ Vite + React UI on **Cloudflare Workers**, with live rooms on **Durable Objects*
 |------|--------|
 | UI | Vite + React |
 | Hosting | Cloudflare Workers (SPA assets + API) |
-| Realtime rooms | Durable Objects (not R2/D1 — those aren’t for live coordination) |
+| Realtime rooms | Durable Objects (not R2/D1: those aren’t for live coordination) |
 | Join codes | Three easy words (`coral-lantern-swift`) |
 
 ## Develop

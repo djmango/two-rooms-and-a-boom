@@ -65,7 +65,7 @@ export default function TimerPanel({
             : "Rounds"}
         </span>
         <span className="pill pill-quiet">
-          {round ? `${round.hostages} hostage${round.hostages === 1 ? "" : "s"}` : "—"}
+          {round ? `${round.hostages} hostage${round.hostages === 1 ? "" : "s"}` : "No round yet"}
         </span>
       </div>
 

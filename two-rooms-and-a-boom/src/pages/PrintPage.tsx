@@ -13,7 +13,7 @@ import "@/styles/print.css";
 const LEADERS: CardDef[] = [
   {
     id: "leader-a",
-    name: "Leader — Room A",
+    name: "Leader, Room A",
     team: "leader",
     kind: "leader",
     short: "Room A",
@@ -22,7 +22,7 @@ const LEADERS: CardDef[] = [
   },
   {
     id: "leader-b",
-    name: "Leader — Room B",
+    name: "Leader, Room B",
     team: "leader",
     kind: "leader",
     short: "Room B",
@@ -380,13 +380,13 @@ function PrintSheets({
             <p className="card-short">{deal.players} players</p>
             <ul className="hostage-list">
               <li>
-                <strong>3 min</strong> — {h3}
+                <strong>3 min</strong>: {h3}
               </li>
               <li>
-                <strong>2 min</strong> — {h2}
+                <strong>2 min</strong>: {h2}
               </li>
               <li>
-                <strong>1 min</strong> — {h1}
+                <strong>1 min</strong>: {h1}
               </li>
             </ul>
             <p className="card-ability">Leaders cannot be hostages.</p>

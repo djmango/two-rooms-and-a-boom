@@ -25,7 +25,7 @@ function randomWord(): string {
   return WORD_LIST[buf[0]! % WORD_LIST.length]!;
 }
 
-/** Three easy-to-say words. ~1500³ ≈ 3.4e9 combos — fine for dozens/hundreds of concurrent rooms. */
+/** Three easy-to-say words. ~1500³ ≈ 3.4e9 combos, fine for dozens/hundreds of concurrent rooms. */
 export function generateCode(): string {
   return `${randomWord()}-${randomWord()}-${randomWord()}`;
 }

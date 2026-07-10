@@ -125,7 +125,7 @@
       "name": "Coy Boy",
       "team": "blue",
       "kind": "advanced",
-      "short": "Coy — limited sharing",
+      "short": "Coy: limited sharing",
       "ability": "You cannot card share, privately reveal, or publicly reveal (except Psychologist exceptions). Color share only when allowed by rules."
     },
     "r009": {
@@ -133,7 +133,7 @@
       "name": "Coy Boy",
       "team": "red",
       "kind": "advanced",
-      "short": "Coy — limited sharing",
+      "short": "Coy: limited sharing",
       "ability": "You cannot card share, privately reveal, or publicly reveal (except Psychologist exceptions). Color share only when allowed by rules."
     },
     "b023": {
@@ -158,7 +158,7 @@
       "team": "blue",
       "kind": "advanced",
       "short": "Honest condition",
-      "ability": "You begin with the honest condition — you must always verbally tell the truth."
+      "ability": "You begin with the honest condition: you must always verbally tell the truth."
     },
     "r004": {
       "id": "r004",
@@ -166,7 +166,7 @@
       "team": "red",
       "kind": "advanced",
       "short": "Honest condition",
-      "ability": "You begin with the honest condition — you must always verbally tell the truth."
+      "ability": "You begin with the honest condition: you must always verbally tell the truth."
     },
     "b013": {
       "id": "b013",
@@ -174,7 +174,7 @@
       "team": "blue",
       "kind": "advanced",
       "short": "Must lie",
-      "ability": "You begin with the liar condition — you must always verbally lie."
+      "ability": "You begin with the liar condition: you must always verbally lie."
     },
     "r013": {
       "id": "r013",
@@ -182,7 +182,7 @@
       "team": "red",
       "kind": "advanced",
       "short": "Must lie",
-      "ability": "You begin with the liar condition — you must always verbally lie."
+      "ability": "You begin with the liar condition: you must always verbally lie."
     },
     "b007": {
       "id": "b007",
@@ -222,7 +222,7 @@
       "team": "blue",
       "kind": "advanced",
       "short": "Ignore privacy",
-      "ability": "You ignore the Privacy Promise variant — you may look at private shares when able."
+      "ability": "You ignore the Privacy Promise variant: you may look at private shares when able."
     },
     "r025": {
       "id": "r025",
@@ -230,14 +230,14 @@
       "team": "red",
       "kind": "advanced",
       "short": "Ignore privacy",
-      "ability": "You ignore the Privacy Promise variant — you may look at private shares when able."
+      "ability": "You ignore the Privacy Promise variant: you may look at private shares when able."
     },
     "b030": {
       "id": "b030",
       "name": "Red Spy",
       "team": "red",
       "kind": "advanced",
-      "short": "Looks blue — wins with Red",
+      "short": "Looks blue, wins with Red",
       "ability": "You are on the Red Team, but your card is blue (looks Blue). Best with 11+ players (color sharing)."
     },
     "r030": {
@@ -245,7 +245,7 @@
       "name": "Blue Spy",
       "team": "blue",
       "kind": "advanced",
-      "short": "Looks red — wins with Blue",
+      "short": "Looks red, wins with Blue",
       "ability": "You are on the Blue Team, but your card is red (looks Red). Best with 11+ players (color sharing)."
     },
     "g001": {
@@ -386,7 +386,7 @@
       "id": "doctor-engineer",
       "name": "First color share",
       "emoji": "🩺",
-      "blurb": "Doctor & Engineer — classic first advanced game.",
+      "blurb": "Doctor & Engineer, classic first advanced game.",
       "players": [
         6,
         30
@@ -401,7 +401,7 @@
       "id": "instant-death",
       "name": "Instant Death",
       "emoji": "☠️",
-      "blurb": "Doctor, Engineer, Tuesday Knight, Dr. Boom — games can end early.",
+      "blurb": "Doctor, Engineer, Tuesday Knight, Dr. Boom; games can end early.",
       "players": [
         6,
         30
@@ -418,7 +418,7 @@
       "id": "mystery-6",
       "name": "6 Player Mystery",
       "emoji": "🕵️",
-      "blurb": "Daughter, Martyr, Private Eye — bury one card.",
+      "blurb": "Daughter, Martyr, Private Eye; bury one card.",
       "players": [
         6,
         6
@@ -639,7 +639,7 @@
   "LEADERS": [
     {
       "id": "leader-a",
-      "name": "Leader — Room A",
+      "name": "Leader, Room A",
       "team": "leader",
       "kind": "leader",
       "short": "Room A",
@@ -647,7 +647,7 @@
     },
     {
       "id": "leader-b",
-      "name": "Leader — Room B",
+      "name": "Leader, Room B",
       "team": "leader",
       "kind": "leader",
       "short": "Room B",

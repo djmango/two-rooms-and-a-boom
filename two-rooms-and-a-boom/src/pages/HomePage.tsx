@@ -5,7 +5,7 @@ import { createRoom, normalizeCode, saveSession } from "@/lib/api";
 const STEPS = [
   {
     title: "Create a room",
-    body: "Host taps create and gets a three-word code — nothing to type on the way in.",
+    body: "Host taps create and gets a three-word code, nothing to type on the way in.",
   },
   {
     title: "Everyone joins",
@@ -67,7 +67,7 @@ export default function HomePage() {
           <h1>Split the rooms. Trade the hostages. Don&rsquo;t trigger the boom.</h1>
           <p className="lede">
             Create a room, share a three-word code, and play the social deduction
-            classic on your phones — or print a shuffled deck for the table.
+            classic on your phones, or print a shuffled deck for the table.
           </p>
 
           <div className="hero-actions">
@@ -180,7 +180,7 @@ export default function HomePage() {
         <article className="feature">
           <h3>Durable realtime</h3>
           <p>
-            Rooms run on Cloudflare Durable Objects — reconnect instantly if your
+            Rooms run on Cloudflare Durable Objects, reconnect instantly if your
             phone sleeps or your signal drops.
           </p>
         </article>
