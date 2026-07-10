@@ -375,16 +375,30 @@ export class GameRoom extends DurableObject<Env> {
         this.send(ws, { type: "error", message: "Room is full." });
         return;
       }
-      player = {
-        id: randomId(),
-        secret: randomId(),
-        name: sanitizeName(msg.name || `Player ${state.players.length + 1}`),
-        ready: false,
-        card: null,
-        room: null,
-        lastSeen: Date.now(),
-      };
-      state.players.push(player);
+
+      // Reclaim a disconnected player slot with the same name instead of
+      // creating a duplicate (e.g. when a device loses its localStorage session).
+      const incomingName = sanitizeName(msg.name || `Player ${state.players.length + 1}`);
+      const stale = state.players.find(
+        (p) => p.name === incomingName && p.id !== state.hostId && !this.isConnected(p.id)
+      );
+      if (stale) {
+        stale.secret = randomId();
+        stale.lastSeen = Date.now();
+        stale.ready = false;
+        player = stale;
+      } else {
+        player = {
+          id: randomId(),
+          secret: randomId(),
+          name: incomingName,
+          ready: false,
+          card: null,
+          room: null,
+          lastSeen: Date.now(),
+        };
+        state.players.push(player);
+      }
     }
 
     ws.serializeAttachment({ playerId: player.id } satisfies WsAttach);

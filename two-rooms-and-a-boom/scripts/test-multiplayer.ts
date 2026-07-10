@@ -247,6 +247,36 @@ async function main() {
   const renamed = await host2.wait((m) => m.type === "state" && m.state?.you?.name === "Captain");
   assert(renamed.state.you.name === "Captain", "renamed");
 
+  // Back to lobby to test kick + reclaim
+  host2.send({ type: "reshuffle" });
+  await host2.wait((m) => m.type === "state" && m.state?.phase === "lobby");
+
+  // Reclaim: a guest reconnects without credentials, same name -> should not duplicate
+  const beforeReclaim = renamed.state.players.length;
+  guests[0]!.close();
+  await new Promise((r) => setTimeout(r, 200));
+  const reclaimer = new Client();
+  await reclaimer.connect(created.code);
+  reclaimer.send({ type: "hello", name: "Alex" });
+  const reclaimWelcome = await reclaimer.wait((m) => m.type === "welcome");
+  const afterReclaim = reclaimWelcome.state.players.length;
+  assert(afterReclaim === beforeReclaim, `reclaim no duplicate (${beforeReclaim} -> ${afterReclaim})`);
+
+  // Kick: host removes a player
+  const kickTarget = reclaimWelcome.state.players.find(
+    (p: any) => !p.isHost && p.name !== "Alex"
+  );
+  assert(!!kickTarget, "kick target found");
+  host2.send({ type: "kick", playerId: kickTarget!.id });
+  const afterKick = await host2.wait(
+    (m) => m.type === "state" && !m.state?.players?.some((p: any) => p.id === kickTarget!.id)
+  );
+  assert(
+    !afterKick.state.players.some((p: any) => p.id === kickTarget!.id),
+    "kicked player removed"
+  );
+  reclaimer.close();
+
   // SPA routes
   for (const path of ["/", "/print", `/play/${created.code}`]) {
     const res = await fetch(`${BASE}${path}`);

@@ -937,6 +937,27 @@ main {
   color: var(--ok);
 }
 
+.kick-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--ink-faint);
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.3rem 0.55rem;
+  min-height: 28px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  flex: none;
+  transition: color 0.12s var(--ease), background 0.12s var(--ease);
+}
+
+.kick-btn:hover {
+  color: var(--red);
+  background: var(--panel-2);
+}
+
 /* ---------- Lobby / play ---------- */
 
 .lobby-controls,

@@ -177,6 +177,8 @@ export default function GamePage() {
                 players={state.players}
                 youId={state.you?.id}
                 phase={state.phase}
+                isHost={isHost}
+                onKick={(pid) => send({ type: "kick", playerId: pid })}
               />
             </aside>
 
