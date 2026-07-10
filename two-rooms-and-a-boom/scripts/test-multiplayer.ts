@@ -223,8 +223,22 @@ async function main() {
   assert(lobby.state.phase === "lobby", "back to lobby");
   assert(lobby.state.you?.card == null, "card cleared");
 
+  host2.send({ type: "set_playset", playsetId: "classic-kaboom", playerCount: 6 });
+  const classicUpdate = await host2.wait(
+    (m) => m.type === "state" && m.state?.playsetId === "classic-kaboom"
+  );
+  assert(classicUpdate.state.playsetName === "Classic Kaboom", "classic kaboom selected");
+
   host2.send({ type: "start" });
   await host2.wait((m) => m.type === "state" && m.state?.phase === "playing");
+  host2.send({ type: "start_round" });
+  const classicRound = await host2.wait(
+    (m) => m.type === "state" && m.state?.round?.endsAt
+  );
+  assert(classicRound.state.round.total === 3, "classic kaboom has 3 rounds at 6 players");
+  assert(classicRound.state.round.minutes === 3, "classic kaboom starts at 3 minutes");
+  assert(classicRound.state.round.hostages === 2, "classic kaboom starts with 2 hostages");
+
   host2.send({ type: "reveal_all" });
   const ended = await host2.wait((m) => m.type === "state" && m.state?.phase === "ended");
   assert(ended.state.phase === "ended", "game ended");

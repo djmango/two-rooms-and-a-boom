@@ -21,6 +21,7 @@ export interface PlaysetDef {
   oddCard: string | null;
   bury?: boolean;
   fixedPlayers?: number;
+  ruleset?: "classic-kaboom";
 }
 
 export interface PublicPlayer {

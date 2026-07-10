@@ -5,7 +5,7 @@ import {
   assignRooms,
   buildDeck,
   getPlayset,
-  hostagesFor,
+  roundsFor,
 } from "../shared/game/deck";
 import type {
   CardDef,
@@ -449,13 +449,12 @@ export class GameRoom extends DurableObject<Env> {
       throw new Error("Game not in progress.");
     }
     state.phase = "playing";
-    const hostages = hostagesFor(state.players.length);
-    if (state.roundIndex >= 3) state.roundIndex = 0;
-    const minutes = [3, 2, 1][state.roundIndex]!;
-    state.roundEndsAt = Date.now() + minutes * 60 * 1000;
+    const rounds = roundsFor(getPlayset(state.playsetId), state.players.length);
+    if (state.roundIndex >= rounds.length) state.roundIndex = 0;
+    const round = rounds[state.roundIndex]!;
+    state.roundEndsAt = Date.now() + round.minutes * 60 * 1000;
     state.roundPaused = false;
     state.roundPausedRemainingMs = null;
-    void hostages;
   }
 
   private pauseTimer(state: RoomState, actorId: string): void {
@@ -479,11 +478,8 @@ export class GameRoom extends DurableObject<Env> {
     state.roundEndsAt = null;
     state.roundPaused = false;
     state.roundPausedRemainingMs = null;
-    state.roundIndex = Math.min(2, state.roundIndex + 1);
-    if (state.roundIndex >= 3) {
-      // After final round exchange, host can reveal
-      state.roundIndex = 2;
-    }
+    const rounds = roundsFor(getPlayset(state.playsetId), state.players.length);
+    state.roundIndex = Math.min(rounds.length - 1, state.roundIndex + 1);
   }
 
   private isConnected(playerId: string): boolean {
@@ -509,8 +505,9 @@ export class GameRoom extends DurableObject<Env> {
 
   private publicState(state: RoomState, viewerId: string | null): PublicState {
     const playset = PLAYSETS.find((p) => p.id === state.playsetId) || PLAYSETS[0]!;
-    const hostages = hostagesFor(state.players.length);
-    const minutes = [3, 2, 1][Math.min(state.roundIndex, 2)]!;
+    const rounds = roundsFor(playset, state.players.length);
+    const roundIndex = Math.min(state.roundIndex, rounds.length - 1);
+    const round = rounds[roundIndex]!;
     const viewer = viewerId ? state.players.find((p) => p.id === viewerId) : null;
 
     let remainingMs: number | null = null;
@@ -536,11 +533,11 @@ export class GameRoom extends DurableObject<Env> {
         state.phase === "lobby"
           ? null
           : {
-              index: state.roundIndex,
-              total: 3,
-              label: `${minutes} min`,
-              minutes,
-              hostages: hostages[Math.min(state.roundIndex, 2)]!,
+              index: roundIndex,
+              total: rounds.length,
+              label: `${round.minutes} min`,
+              minutes: round.minutes,
+              hostages: round.hostages,
               endsAt: state.roundEndsAt,
               paused: state.roundPaused,
               remainingMs,

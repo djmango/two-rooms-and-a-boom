@@ -1,4 +1,11 @@
-import { PLAYSETS, PACKS, buildDeck, hostagesFor, getPlayset } from "../shared/game/deck.ts";
+import {
+  PLAYSETS,
+  PACKS,
+  buildDeck,
+  hostagesFor,
+  getPlayset,
+  roundsFor,
+} from "../shared/game/deck.ts";
 import { generateCode, isValidCode, normalizeCode } from "../shared/game/codes.ts";
 
 let failed = 0;
@@ -116,6 +123,38 @@ for (let i = 0; i < 12; i++) {
   orders.add(buildDeck(10, getPlayset("basic"), []).cards.map((c) => `${c.name}`).join("|"));
 }
 assert(orders.size > 1, `shuffle varies (unique orders=${orders.size}/12)`);
+
+const classic = getPlayset("classic-kaboom");
+assert(classic.players[0] === 6 && classic.players[1] === 17, "classic kaboom supports 6-17");
+assert(
+  JSON.stringify(roundsFor(classic, 6)) ===
+    JSON.stringify([
+      { minutes: 3, hostages: 2 },
+      { minutes: 2, hostages: 1 },
+      { minutes: 1, hostages: 1 },
+    ]),
+  "classic kaboom 6-player rounds"
+);
+assert(
+  JSON.stringify(roundsFor(classic, 9)) ===
+    JSON.stringify([
+      { minutes: 3, hostages: 2 },
+      { minutes: 2, hostages: 1 },
+      { minutes: 2, hostages: 1 },
+    ]),
+  "classic kaboom 9-player rounds"
+);
+assert(
+  JSON.stringify(roundsFor(classic, 17)) ===
+    JSON.stringify([
+      { minutes: 5, hostages: 3 },
+      { minutes: 4, hostages: 2 },
+      { minutes: 3, hostages: 2 },
+      { minutes: 2, hostages: 1 },
+      { minutes: 1, hostages: 1 },
+    ]),
+  "classic kaboom 17-player rounds"
+);
 
 console.log("\nPACKS", PACKS.length, "PLAYSETS", PLAYSETS.length);
 console.log(failed ? `${failed} FAILURES` : "ALL PRINT DECK TESTS PASSED");

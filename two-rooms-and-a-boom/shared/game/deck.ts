@@ -32,6 +32,53 @@ export function hostagesFor(players: number): [number, number, number] {
   return [3, 2, 1];
 }
 
+export interface RoundRule {
+  minutes: number;
+  hostages: number;
+}
+
+const DEFAULT_ROUNDS: RoundRule[] = [
+  { minutes: 3, hostages: 1 },
+  { minutes: 2, hostages: 1 },
+  { minutes: 1, hostages: 1 },
+];
+
+/**
+ * Round schedule used by Luke-lwz/kaboom's generateDefaultRounds().
+ * The Classic Kaboom playset is intentionally capped at 17 players.
+ */
+export function roundsFor(playset: PlaysetDef, players: number): RoundRule[] {
+  if (playset.ruleset !== "classic-kaboom") {
+    const hostages = hostagesFor(players);
+    return DEFAULT_ROUNDS.map((round, index) => ({
+      minutes: round.minutes,
+      hostages: hostages[index]!,
+    }));
+  }
+
+  if (players >= 14) {
+    return [
+      { minutes: 5, hostages: 3 },
+      { minutes: 4, hostages: 2 },
+      { minutes: 3, hostages: 2 },
+      { minutes: 2, hostages: 1 },
+      { minutes: 1, hostages: 1 },
+    ];
+  }
+  if (players >= 8) {
+    return [
+      { minutes: 3, hostages: 2 },
+      { minutes: 2, hostages: 1 },
+      { minutes: 2, hostages: 1 },
+    ];
+  }
+  return [
+    { minutes: 3, hostages: 2 },
+    { minutes: 2, hostages: 1 },
+    { minutes: 1, hostages: 1 },
+  ];
+}
+
 export function shuffle<T>(array: T[]): T[] {
   const a = array.slice();
   for (let i = a.length - 1; i > 0; i -= 1) {

@@ -371,6 +371,19 @@
   },
   "PLAYSETS": [
     {
+      "id": "classic-kaboom",
+      "name": "Classic Kaboom",
+      "emoji": "",
+      "blurb": "Kaboom rules: President, Bomber, team cards, Gambler on odd counts, and player-scaled rounds.",
+      "players": [
+        6,
+        17
+      ],
+      "cardIds": [],
+      "oddCard": "g008",
+      "ruleset": "classic-kaboom"
+    },
+    {
       "id": "basic",
       "name": "My first game",
       "emoji": "🎓",

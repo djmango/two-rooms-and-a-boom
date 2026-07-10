@@ -42,6 +42,17 @@ configuration needed.
 
 Print deck: `/print`
 
+### Classic Kaboom
+
+The **Classic Kaboom** playset follows the introductory setup and scaled round
+schedule from [Luke-lwz/kaboom](https://github.com/Luke-lwz/kaboom):
+
+- 6–17 players
+- President, Bomber, and balanced team cards
+- Gambler added for odd player counts
+- No buried card
+- Three rounds for 6–13 players; five rounds for 14–17 players
+
 ## Fan project
 
 Not affiliated with Tuesday Knight Games. Playset ideas inspired by

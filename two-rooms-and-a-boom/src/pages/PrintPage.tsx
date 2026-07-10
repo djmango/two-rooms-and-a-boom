@@ -4,7 +4,7 @@ import {
   PLAYSETS,
   PACKS,
   buildDeck,
-  hostagesFor,
+  roundsFor,
   shuffle,
 } from "@shared/game/deck";
 import type { CardDef, PlaysetDef } from "@shared/game/types";
@@ -76,7 +76,7 @@ export default function PrintPage() {
 
   const deal = dealResult.ok ? dealResult.deal : null;
   const dealError = dealResult.ok ? "" : dealResult.error;
-  const hostages = hostagesFor(deal?.players ?? players);
+  const rounds = roundsFor(playset, deal?.players ?? players);
 
   function updateNameCount(n: number) {
     setNames((prev) => {
@@ -225,7 +225,8 @@ export default function PrintPage() {
         </div>
 
         <aside className="rules-chip">
-          <strong>{deal?.players ?? players} players</strong> · Hostages: {hostages.join(" then ")}
+          <strong>{deal?.players ?? players} players</strong> · Rounds:{" "}
+          {rounds.map((round) => `${round.minutes} min / ${round.hostages}`).join(", ")}
           {dealError && (
             <>
               {" "}
@@ -290,7 +291,7 @@ export default function PrintPage() {
           </div>
 
           <div className="print-sheet" id="print-sheet">
-            <PrintSheets deal={deal} leaders={LEADERS} />
+            <PrintSheets deal={deal} leaders={LEADERS} playset={playset} />
           </div>
         </section>
       )}
@@ -301,6 +302,7 @@ export default function PrintPage() {
 function PrintSheets({
   deal,
   leaders,
+  playset,
 }: {
   deal: {
     cards: CardDef[];
@@ -309,6 +311,7 @@ function PrintSheets({
     players: number;
   };
   leaders: CardDef[];
+  playset: PlaysetDef;
 }) {
   const printCards = [...deal.cards];
   if (deal.buried) {
@@ -317,7 +320,7 @@ function PrintSheets({
   const chunks: CardDef[][] = [];
   for (let i = 0; i < printCards.length; i += 8) chunks.push(printCards.slice(i, i + 8));
 
-  const [h3, h2, h1] = hostagesFor(deal.players);
+  const rounds = roundsFor(playset, deal.players);
 
   return (
     <>
@@ -379,15 +382,11 @@ function PrintSheets({
             <h3 className="card-name">Hostage Chart</h3>
             <p className="card-short">{deal.players} players</p>
             <ul className="hostage-list">
-              <li>
-                <strong>3 min</strong>: {h3}
-              </li>
-              <li>
-                <strong>2 min</strong>: {h2}
-              </li>
-              <li>
-                <strong>1 min</strong>: {h1}
-              </li>
+              {rounds.map((round, index) => (
+                <li key={`${round.minutes}-${index}`}>
+                  <strong>{round.minutes} min</strong>: {round.hostages}
+                </li>
+              ))}
             </ul>
             <p className="card-ability">Leaders cannot be hostages.</p>
           </article>
