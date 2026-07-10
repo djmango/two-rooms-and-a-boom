@@ -995,26 +995,58 @@ main {
   margin: 0 auto;
 }
 
-.card-reveal {
+.role-card-flip {
   position: relative;
   width: 100%;
   aspect-ratio: 2.5 / 3.5;
-  border: 2px solid var(--line-2);
+  perspective: 1400px;
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  outline: none;
+}
+
+.role-card-flip:focus-visible .role-card-flip-inner {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.role-card-flip.dragging {
+  cursor: grabbing;
+}
+
+.role-card-flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.role-card-face {
+  position: absolute;
+  inset: 0;
   border-radius: var(--r-md);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+}
+
+.role-card-face-front {
+  border: 2px solid var(--line-2);
   background: var(--panel);
   color: var(--ink);
-  cursor: pointer;
-  padding: 0;
-  overflow: hidden;
   transition: border-color 0.15s var(--ease);
 }
 
-.card-reveal:hover {
+.role-card-flip:hover .role-card-face-front {
   border-color: var(--gold);
 }
 
-.card-reveal:active {
-  border-color: var(--ink-dim);
+.role-card-face-back {
+  transform: rotateY(180deg);
 }
 
 .card-reveal-ring {
@@ -1031,9 +1063,19 @@ main {
 .card-reveal-inner {
   position: relative;
   height: 100%;
-  display: grid;
-  place-items: center;
   padding: 1rem;
+}
+
+.peek,
+.peek-team {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 1rem;
+  transition: opacity 0.2s var(--ease);
 }
 
 .peek {
@@ -1045,9 +1087,42 @@ main {
   font-weight: 500;
 }
 
+.peek-team {
+  gap: 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--ink-dim);
+}
+
+.peek-team-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--grey);
+}
+
+.peek-team.team-blue .peek-team-dot {
+  background: var(--blue);
+}
+
+.peek-team.team-blue .peek-team-label {
+  color: var(--blue);
+}
+
+.peek-team.team-red .peek-team-dot {
+  background: var(--red);
+}
+
+.peek-team.team-red .peek-team-label {
+  color: var(--red);
+}
+
 .role-card {
   width: 100%;
-  aspect-ratio: 2.5 / 3.5;
+  height: 100%;
   border-radius: var(--r-md);
   border: 1px solid var(--bg);
   background: #f4f4f0;

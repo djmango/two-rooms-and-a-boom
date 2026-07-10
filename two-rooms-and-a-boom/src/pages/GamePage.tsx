@@ -246,8 +246,9 @@ export default function GamePage() {
                 <div className="play-controls">
                   <RoleCard
                     card={state.you?.card ?? null}
-                    revealed={cardRevealed || state.phase === "ended"}
+                    revealed={cardRevealed}
                     onReveal={() => setCardRevealed(true)}
+                    onHide={() => setCardRevealed(false)}
                   />
 
                   {state.you?.room && (
