@@ -1,0 +1,8 @@
+node_modules/
+.wrangler/
+.dev.vars
+.DS_Store
+dist/
+*.log
+_legacy_public/
+worker-configuration.d.ts
