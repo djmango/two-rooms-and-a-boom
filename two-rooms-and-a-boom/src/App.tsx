@@ -6,12 +6,6 @@ import PrintPage from "./pages/PrintPage";
 export default function App() {
   return (
     <div className="app-shell">
-      <div className="bg" aria-hidden="true">
-        <div className="bg-orb bg-orb-a" />
-        <div className="bg-orb bg-orb-b" />
-        <div className="bg-grid" />
-      </div>
-
       <header className="topbar">
         <NavLink className="brand" to="/">
           Two Rooms <span className="brand-and">&amp; a Boom</span>
