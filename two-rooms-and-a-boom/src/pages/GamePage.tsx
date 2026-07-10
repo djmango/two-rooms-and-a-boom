@@ -6,6 +6,7 @@ import type { PlaysetDef } from "@shared/game/types";
 import PlayerList from "@/components/PlayerList";
 import RoleCard from "@/components/RoleCard";
 import TimerPanel from "@/components/TimerPanel";
+import QrCode from "@/components/QrCode";
 
 export default function GamePage() {
   const { code: codeParam } = useParams();
@@ -30,6 +31,7 @@ export default function GamePage() {
   const [nameDraft, setNameDraft] = useState(initialName);
   const [cardRevealed, setCardRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   useEffect(() => {
     if (!code) {
@@ -72,6 +74,17 @@ export default function GamePage() {
     }
   }
 
+  async function copyLink() {
+    const url = `${location.origin}/play/${code}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    } catch {
+      /* ignore */
+    }
+  }
+
   function leave() {
     disconnect();
     navigate("/");
@@ -87,6 +100,16 @@ export default function GamePage() {
               {code}
             </button>
             {copied && <span className="copy-toast">Copied</span>}
+            <button
+              type="button"
+              className="btn ghost share-btn"
+              onClick={() => setShareOpen((v) => !v)}
+              aria-expanded={shareOpen}
+              aria-label="Share room"
+              title="Share room"
+            >
+              Share
+            </button>
           </div>
           <div className="conn" data-status={conn === "live" ? "live" : conn === "offline" ? "offline" : "reconnecting"}>
             <span className="conn-dot" />
@@ -101,6 +124,34 @@ export default function GamePage() {
             </span>
           </div>
         </header>
+
+        {shareOpen && (
+          <div className="share-panel" role="dialog" aria-label="Share room">
+            <div className="share-panel-head">
+              <h2>Invite players</h2>
+              <button
+                type="button"
+                className="btn ghost share-close"
+                onClick={() => setShareOpen(false)}
+                aria-label="Close"
+              >
+                Close
+              </button>
+            </div>
+            <QrCode value={`${location.origin}/play/${code}`} size={192} />
+            <p className="share-hint">
+              Scan to open <span className="share-code">{code}</span> on your phone
+            </p>
+            <div className="share-actions">
+              <button type="button" className="btn secondary" onClick={copyLink}>
+                Copy link
+              </button>
+              <button type="button" className="btn secondary" onClick={copyCode}>
+                Copy code
+              </button>
+            </div>
+          </div>
+        )}
 
         {(error || (!session && conn === "offline")) && (
           <p className="toast">
@@ -135,8 +186,8 @@ export default function GamePage() {
                   <div className="panel-head stacked">
                     <h2>Lobby</h2>
                     <p>
-                      {state.players.length < 6
-                        ? `${state.players.length} joined · need ${6 - state.players.length} more`
+                      {state.players.length < 4
+                        ? `${state.players.length} joined · need ${4 - state.players.length} more`
                         : `${state.players.length} players · host can deal`}
                     </p>
                   </div>
@@ -161,7 +212,7 @@ export default function GamePage() {
                             send({
                               type: "set_playset",
                               playsetId: e.target.value,
-                              playerCount: Math.max(6, state.players.length),
+                              playerCount: Math.max(4, state.players.length),
                             })
                           }
                         >
@@ -178,7 +229,7 @@ export default function GamePage() {
                       <button
                         type="button"
                         className="btn primary"
-                        disabled={state.players.length < 6}
+                        disabled={state.players.length < 4}
                         onClick={() => {
                           setError("");
                           send({ type: "start" });

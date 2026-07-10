@@ -150,7 +150,7 @@ export class GameRoom extends DurableObject<Env> {
       : "basic";
     const playerCount = clamp(
       Number(body.playerCount) || 10,
-      6,
+      4,
       MAX_PLAYERS
     );
 
@@ -273,7 +273,7 @@ export class GameRoom extends DurableObject<Env> {
           if (state.phase !== "lobby") throw new Error("Game already started.");
           getPlayset(msg.playsetId);
           state.playsetId = msg.playsetId;
-          state.playerCountTarget = clamp(Number(msg.playerCount) || state.playerCountTarget, 6, MAX_PLAYERS);
+          state.playerCountTarget = clamp(Number(msg.playerCount) || state.playerCountTarget, 4, MAX_PLAYERS);
           break;
         case "start":
           await this.startGame(state, player.id);
@@ -402,7 +402,7 @@ export class GameRoom extends DurableObject<Env> {
   private async startGame(state: RoomState, actorId: string): Promise<void> {
     if (actorId !== state.hostId) throw new Error("Only the host can start.");
     if (state.phase !== "lobby") throw new Error("Already started.");
-    if (state.players.length < 6) throw new Error("Need at least 6 players.");
+    if (state.players.length < 4) throw new Error("Need at least 4 players.");
 
     const playset = getPlayset(state.playsetId);
     const n = state.players.length;

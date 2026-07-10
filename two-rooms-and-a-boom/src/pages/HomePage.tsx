@@ -1,6 +1,7 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { createRoom, normalizeCode, saveSession } from "@/lib/api";
+import RoomCodeInput from "@/components/RoomCodeInput";
 
 const STEPS = [
   {
@@ -17,14 +18,27 @@ const STEPS = [
   },
 ];
 
+function partsToCode(parts: string[]): string {
+  return parts.map((p) => p.toLowerCase().replace(/[^a-z]/g, "")).filter(Boolean).join("-");
+}
+
 export default function HomePage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
+  const initialCode = normalizeCode(params.get("room") || "");
+  const initialParts = initialCode ? initialCode.split("-") : ["", "", ""];
+
   const [joinOpen, setJoinOpen] = useState(Boolean(params.get("room")));
-  const [code, setCode] = useState(normalizeCode(params.get("room") || ""));
+  const [parts, setParts] = useState<string[]>(
+    initialParts.length === 3 ? initialParts : ["", "", ""]
+  );
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const nameRef = useRef<HTMLInputElement | null>(null);
+
+  const code = partsToCode(parts);
+  const wordCount = parts.filter((p) => p.length > 0).length;
 
   async function onCreate() {
     setBusy(true);
@@ -47,16 +61,25 @@ export default function HomePage() {
     }
   }
 
-  function onJoin(ev: FormEvent) {
-    ev.preventDefault();
+  function join() {
     const room = normalizeCode(code);
-    if (room.split("-").length !== 3) {
-      setError("Use a three-word code like coral-lantern-swift");
+    const words = room.split("-");
+    if (words.length !== 3 || words.some((w) => !w)) {
+      setError("Enter all three words to join");
       return;
     }
     const playerName = name.trim() || "Player";
     saveSession({ code: room, playerId: "", secret: "", name: playerName });
     navigate(`/play/${room}`);
+  }
+
+  function onJoin(ev: FormEvent) {
+    ev.preventDefault();
+    join();
+  }
+
+  function onCodeComplete() {
+    nameRef.current?.focus();
   }
 
   return (
@@ -86,29 +109,32 @@ export default function HomePage() {
 
           {joinOpen && (
             <form className="join-panel" onSubmit={onJoin}>
-              <div className="join-panel-grid">
-                <label className="field">
-                  <span>Room code</span>
-                  <input
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    autoComplete="off"
-                    autoCapitalize="none"
-                    spellCheck={false}
-                    placeholder="coral-lantern-swift"
-                  />
-                </label>
-                <label className="field">
-                  <span>Your name</span>
-                  <input
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    maxLength={24}
-                    placeholder="Alex"
-                  />
-                </label>
+              <div className="field">
+                <span>Room code</span>
+                <RoomCodeInput
+                  value={parts}
+                  onChange={setParts}
+                  onComplete={onCodeComplete}
+                />
+                <p className="form-hint">
+                  {wordCount === 0
+                    ? "Type each word, it jumps to the next when it matches"
+                    : wordCount < 3
+                      ? `${wordCount} of 3 words entered`
+                      : "Ready to join"}
+                </p>
               </div>
-              <button type="submit" className="btn primary">
+              <label className="field">
+                <span>Your name</span>
+                <input
+                  ref={nameRef}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  maxLength={24}
+                  placeholder="Alex"
+                />
+              </label>
+              <button type="submit" className="btn primary" disabled={wordCount < 3}>
                 Join game
               </button>
             </form>

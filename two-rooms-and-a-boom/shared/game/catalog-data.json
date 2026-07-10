@@ -376,7 +376,7 @@
       "emoji": "",
       "blurb": "Kaboom rules: President, Bomber, team cards, Gambler on odd counts, and player-scaled rounds.",
       "players": [
-        6,
+        4,
         17
       ],
       "cardIds": [],
@@ -389,7 +389,7 @@
       "emoji": "🎓",
       "blurb": "President, Bomber, team cards only. Best for teaching.",
       "players": [
-        6,
+        4,
         30
       ],
       "cardIds": [],
@@ -401,7 +401,7 @@
       "emoji": "🩺",
       "blurb": "Doctor & Engineer, classic first advanced game.",
       "players": [
-        6,
+        4,
         30
       ],
       "cardIds": [
@@ -528,7 +528,7 @@
       "emoji": "🧩",
       "blurb": "Pick advanced packs yourself below.",
       "players": [
-        6,
+        4,
         30
       ],
       "cardIds": null,

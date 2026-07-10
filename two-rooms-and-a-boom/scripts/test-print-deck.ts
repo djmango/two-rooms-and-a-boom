@@ -100,10 +100,10 @@ for (const ps of PLAYSETS) {
 }
 
 try {
-  buildDeck(5, getPlayset("basic"), []);
-  assert(false, "5 should fail");
+  buildDeck(3, getPlayset("basic"), []);
+  assert(false, "3 should fail");
 } catch {
-  assert(true, "reject 5");
+  assert(true, "reject 3");
 }
 try {
   buildDeck(31, getPlayset("basic"), []);
@@ -124,8 +124,18 @@ for (let i = 0; i < 12; i++) {
 }
 assert(orders.size > 1, `shuffle varies (unique orders=${orders.size}/12)`);
 
+try {
+  const { cards, buried } = buildDeck(4, getPlayset("basic"), []);
+  assert(cards.length === 4 && !buried, "basic 4 size=4");
+  assert(cards.some((c) => c.name === "President"), "basic 4 President");
+  assert(cards.some((c) => c.name === "Bomber"), "basic 4 Bomber");
+  console.log("  roles basic 4", cards.map((x) => x.name).sort().join(", "));
+} catch (e) {
+  assert(false, `basic 4: ${(e as Error).message}`);
+}
+
 const classic = getPlayset("classic-kaboom");
-assert(classic.players[0] === 6 && classic.players[1] === 17, "classic kaboom supports 6-17");
+assert(classic.players[0] === 4 && classic.players[1] === 17, "classic kaboom supports 4-17");
 assert(
   JSON.stringify(roundsFor(classic, 6)) ===
     JSON.stringify([

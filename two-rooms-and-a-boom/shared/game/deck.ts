@@ -100,8 +100,8 @@ export function buildDeck(
   playset: PlaysetDef,
   packIds: string[] = []
 ): BuiltDeck {
-  if (players < 6 || players > 30) {
-    throw new Error("Player count must be between 6 and 30.");
+  if (players < 4 || players > 30) {
+    throw new Error("Player count must be between 4 and 30.");
   }
   if (playset.fixedPlayers && players !== playset.fixedPlayers) {
     throw new Error(`${playset.name} is fixed at ${playset.fixedPlayers} players.`);

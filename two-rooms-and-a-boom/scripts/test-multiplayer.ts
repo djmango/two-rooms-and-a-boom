@@ -103,7 +103,7 @@ async function main() {
 
   host.send({ type: "start" });
   const tooFew = await host.wait((m) => m.type === "error");
-  assert(/6/.test(tooFew.message || ""), `too few error: ${tooFew.message}`);
+  assert(/4/.test(tooFew.message || ""), `too few error: ${tooFew.message}`);
 
   const guests: Client[] = [];
   for (const name of ["Alex", "Blake", "Casey", "Drew", "Eli"]) {
