@@ -170,13 +170,13 @@ assert(
 // auto core/filler) are what gets dealt.
 {
   const mix = getPlayset("custom-mix");
-  const picked = ["r014", "g028", "g019", "r025"]; // Engineer, Survivor, Private Eye, Paparazzo (all have PnP art)
+  const picked = ["r004", "g028", "g019", "r025"]; // Angel, Survivor, Private Eye, Paparazzo (all have PnP art, none excluded)
   try {
     const { cards } = buildDeck(10, mix, picked);
     assert(cards.length === 10, `custom-mix 10 size=${cards.length}`);
     assert(cards.some((c) => c.name === "President"), "custom-mix always has President");
     assert(cards.some((c) => c.name === "Bomber"), "custom-mix always has Bomber");
-    assert(cards.some((c) => c.name === "Engineer"), "custom-mix has picked Engineer");
+    assert(cards.some((c) => c.name === "Angel"), "custom-mix has picked Angel");
     assert(cards.some((c) => c.name === "Survivor"), "custom-mix has picked Survivor");
     assert(cards.some((c) => c.name === "Private Eye"), "custom-mix has picked Private Eye");
     assert(cards.some((c) => c.name === "Paparazzo"), "custom-mix has picked Paparazzo");
@@ -202,15 +202,16 @@ assert(
   // Picking way more roles than there are players is the one unavoidable
   // limit (you can't deal more unique cards than players).
   try {
-    buildDeck(4, mix, ["r014", "g028", "g019", "r025", "g008"]);
+    buildDeck(4, mix, ["r004", "g028", "g019", "r025", "g008"]);
     assert(false, "custom-mix overload (5 specials in a 4p game) should be rejected");
   } catch {
     assert(true, "custom-mix overload rejected");
   }
 
-  // Picking a core card, a team-filler, or a role with no PnP art must be
-  // rejected. The Gambler (g008) is pickable, so picking it succeeds.
-  for (const bad of ["b001", "r001", "b000", "r000", "g024"]) {
+  // Picking a core card, a team-filler, a role with no PnP art, or a role
+  // held out of custom mixes (the Engineer) must be rejected. The Gambler
+  // (g008) is pickable, so picking it succeeds.
+  for (const bad of ["b001", "r001", "b000", "r000", "g024", "r014"]) {
     try {
       buildDeck(10, mix, [bad]);
       assert(false, `custom-mix should reject picking ${bad}`);

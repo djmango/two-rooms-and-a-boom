@@ -687,9 +687,14 @@ async function testCustomMix() {
   const coreErr = await host.wait((m) => m.type === "error");
   assert(/isn.t pickable/i.test(coreErr.message || ""), `custom-mix rejects core card: ${coreErr.message}`);
 
-  // Valid pick: Engineer, Survivor, Private Eye, Paparazzo (all roles we
-  // have PnP art for, since the picker only shows art-having cards).
-  const picked = ["r014", "g028", "g019", "r025"];
+  // Pick a card held out of custom mixes (the Engineer) -> must be rejected.
+  host.send({ type: "set_playset", playsetId: "custom-mix", playerCount: 10, cardIds: ["r014"] });
+  const excludedErr = await host.wait((m) => m.type === "error");
+  assert(/isn.t pickable/i.test(excludedErr.message || ""), `custom-mix rejects Engineer: ${excludedErr.message}`);
+
+  // Valid pick: Angel, Survivor, Private Eye, Paparazzo (all roles we have
+  // PnP art for and none excluded from the custom mix).
+  const picked = ["r004", "g028", "g019", "r025"];
   host.send({ type: "set_playset", playsetId: "custom-mix", playerCount: 10, cardIds: picked });
   const psUpdate = await host.wait(
     (m) => m.type === "state" && m.state?.playsetId === "custom-mix" && m.state?.customCardIds
@@ -727,12 +732,14 @@ async function testCustomMix() {
   assert(privateCards.length === 10, `10 private cards dealt (got ${privateCards.length})`);
   assert(privateCards.includes("President"), `custom-mix has President among ${privateCards.join(",")}`);
   assert(privateCards.includes("Bomber"), `custom-mix has Bomber among ${privateCards.join(",")}`);
-  assert(privateCards.includes("Engineer"), `custom-mix has picked Engineer among ${privateCards.join(",")}`);
+  assert(privateCards.includes("Angel"), `custom-mix has picked Angel among ${privateCards.join(",")}`);
   assert(privateCards.includes("Survivor"), `custom-mix has picked Survivor among ${privateCards.join(",")}`);
   assert(privateCards.includes("Private Eye"), `custom-mix has picked Private Eye among ${privateCards.join(",")}`);
   assert(privateCards.includes("Paparazzo"), `custom-mix has picked Paparazzo among ${privateCards.join(",")}`);
   // No unpicked advanced roles leaked in.
   assert(!privateCards.includes("Agent"), `custom-mix excludes unpicked Agent`);
+  // Engineer is held out of custom mixes, so it must not appear.
+  assert(!privateCards.includes("Engineer"), `custom-mix excludes Engineer (not pickable in custom)`);
   // 10 is even, so no auto Gambler.
   assert(!privateCards.includes("Gambler"), `custom-mix 10 (even) has no auto Gambler`);
 
