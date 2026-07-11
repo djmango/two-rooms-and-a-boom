@@ -688,22 +688,6 @@
     "height_px": 1100
   },
   {
-    "file": "pnp13_r0c3_target-grey.png",
-    "sheet": "PnP13",
-    "row": 0,
-    "col": 3,
-    "name": "Target",
-    "team": "grey",
-    "pdf_rect_pt": [
-      569.952,
-      36.0,
-      748.027,
-      299.838
-    ],
-    "width_px": 743,
-    "height_px": 1100
-  },
-  {
     "file": "pnp13_r1c0_thug-blue.png",
     "sheet": "PnP13",
     "row": 1,

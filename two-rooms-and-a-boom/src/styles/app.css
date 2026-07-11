@@ -1485,6 +1485,63 @@ main {
   opacity: 0.85;
 }
 
+/* Selected chips float to a "Picked" section at the top and pop in; tapping
+   one pops it back down into its team group. */
+.card-picker-picked {
+  padding: 0.6rem 0.7rem;
+  border-radius: var(--r-md);
+  background: rgba(255, 196, 64, 0.08);
+  border: 1px dashed var(--gold);
+}
+.card-picker-picked .card-picker-section-label {
+  color: var(--gold);
+}
+
+.card-picker-picked .card-chip {
+  animation: card-pop-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.card-chip.is-returning {
+  animation: card-pop-back 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes card-pop-in {
+  0% {
+    transform: translateY(10px) scale(0.82);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(-2px) scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes card-pop-back {
+  0% {
+    transform: translateY(-12px) scale(0.85);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(2px) scale(1.04);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-picker-picked .card-chip,
+  .card-chip.is-returning {
+    animation: none;
+  }
+}
+
 .card-picker-summary {
   margin: 0;
   font-size: 0.78rem;

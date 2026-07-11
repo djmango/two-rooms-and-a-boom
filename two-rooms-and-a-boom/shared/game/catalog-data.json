@@ -328,14 +328,6 @@
       "short": "Shoot the Target",
       "ability": "At game end, shoot a player. You win if you shoot the Target. Play with Target / Decoy."
     },
-    "g026": {
-      "id": "g026",
-      "name": "Target",
-      "team": "grey",
-      "kind": "grey",
-      "short": "Don’t get shot",
-      "ability": "You win if the Sniper does not shoot you. Play with Sniper / Decoy."
-    },
     "g028": {
       "id": "g028",
       "name": "Survivor",
@@ -477,23 +469,6 @@
       ],
       "oddCard": null,
       "fixedPlayers": 6
-    },
-    {
-      "id": "gunshot",
-      "name": "2 Rooms + Gunshot",
-      "emoji": "🔫",
-      "blurb": "Sniper, Target, Decoy, Hot Potato.",
-      "players": [
-        6,
-        20
-      ],
-      "cardIds": [
-        "g024",
-        "g026",
-        "g007",
-        "g009"
-      ],
-      "oddCard": "g008"
     },
     {
       "id": "speak-no-evil",
