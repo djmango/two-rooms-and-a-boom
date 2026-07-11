@@ -15,6 +15,11 @@
   --ok: #30d158;
   --danger: #ff453a;
 
+  /* Room A/B colors are deliberately distinct from the team colors above
+     (--blue/--red) so a room badge is never mistaken for a team badge. */
+  --room-a: #2dd4bf;
+  --room-b: #a78bfa;
+
   --font-display: "Archivo Black", "Inter", -apple-system, system-ui, sans-serif;
   --font-body: "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
@@ -329,11 +334,11 @@ main {
 }
 
 .room-diagram-a {
-  border-color: var(--blue);
+  border-color: var(--room-a);
 }
 
 .room-diagram-b {
-  border-color: var(--red);
+  border-color: var(--room-b);
 }
 
 .room-diagram-label {
@@ -354,11 +359,11 @@ main {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: var(--blue);
+  background: var(--room-a);
 }
 
 .room-diagram-b .room-dot {
-  background: var(--red);
+  background: var(--room-b);
 }
 
 .room-diagram-core {
@@ -920,13 +925,13 @@ main {
 }
 
 .room-tag.a {
-  background: var(--blue);
-  color: #fff;
+  background: var(--room-a);
+  color: #062824;
 }
 
 .room-tag.b {
-  background: var(--red);
-  color: #fff;
+  background: var(--room-b);
+  color: #241a4d;
 }
 
 .leader-tag {
@@ -1186,13 +1191,13 @@ main {
 }
 
 .room-badge[data-room="A"] {
-  color: var(--blue);
-  border-color: var(--blue);
+  color: var(--room-a);
+  border-color: var(--room-a);
 }
 
 .room-badge[data-room="B"] {
-  color: var(--red);
-  border-color: var(--red);
+  color: var(--room-b);
+  border-color: var(--room-b);
 }
 
 /* ---------- Leader panel ---------- */
