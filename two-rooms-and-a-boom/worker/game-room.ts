@@ -569,6 +569,11 @@ export class GameRoom extends DurableObject<Env> {
     if (state.phase !== "playing" && state.phase !== "ended") {
       throw new Error("Game not in progress.");
     }
+    // A previous round may still be open (its timer ran out but nobody
+    // explicitly ended it). Finalize that round's hostage exchange first so
+    // room swaps never get silently dropped just because "Start round" was
+    // clicked instead of "End round".
+    if (state.roundEndsAt != null) this.finishRound(state);
     state.phase = "playing";
     const rounds = roundsFor(getPlayset(state.playsetId), state.players.length);
     if (state.roundIndex >= rounds.length) state.roundIndex = 0;
@@ -596,6 +601,10 @@ export class GameRoom extends DurableObject<Env> {
 
   private endRound(state: RoomState, actorId: string): void {
     this.requireHost(state, actorId);
+    this.finishRound(state);
+  }
+
+  private finishRound(state: RoomState): void {
     this.exchangeHostages(state);
     state.roundEndsAt = null;
     state.roundPaused = false;

@@ -336,6 +336,45 @@ async function main() {
     "hostage selections cleared after exchange"
   );
 
+  // --- Regression: starting the next round without explicitly ending the
+  // previous one must still finalize the pending hostage exchange, so
+  // rooms never silently fail to swap just because "End round" was skipped. ---
+  // Room membership (unlike isLeader/leaderId) isn't redacted cross-room, so
+  // the host's own already-captured view is enough to find room A's members.
+  const roomAAfterFirstExchange = endedRound.state.players.filter((p: any) => p.room === "A");
+  assert(
+    roomAAfterFirstExchange.some((p: any) => p.id === leaderA.id),
+    "room A leader unchanged after first exchange"
+  );
+  const secondHostage = roomAAfterFirstExchange.find((p: any) => p.id !== leaderA.id);
+  assert(!!secondHostage, "room A has a non-leader to pick as the next hostage");
+
+  leaderAClient.send({ type: "select_hostages", playerIds: [secondHostage.id] });
+  await leaderAClient.wait(
+    (m) => m.type === "state" && m.state?.rooms?.A?.hostageIds?.includes(secondHostage.id)
+  );
+
+  // Start round 1's timer normally, then -- instead of ever sending
+  // "end_round" -- go straight to "Start round" again, exactly like a host
+  // who forgot to click "End round" once the buzzer went off.
+  host.send({ type: "start_round" });
+  await host.wait(
+    (m) => m.type === "state" && m.state?.round?.index === 1 && m.state?.round?.endsAt != null
+  );
+
+  host.send({ type: "start_round" });
+  const skippedEndRound = await host.wait((m) => m.type === "state" && m.state?.round?.index === 2);
+  assert(skippedEndRound.state.round.index === 2, `round index ${skippedEndRound.state.round.index}`);
+  assert(skippedEndRound.state.round.endsAt > Date.now(), "next round's timer actually started");
+  assert(
+    skippedEndRound.state.players.find((p: any) => p.id === secondHostage.id)?.room === "B",
+    `hostage ${secondHostage.name} still exchanged into room B even though "end_round" was never sent`
+  );
+  assert(
+    skippedEndRound.state.rooms.A.hostageIds.length === 0 && skippedEndRound.state.rooms.B.hostageIds.length === 0,
+    "hostage selections cleared after the implicit exchange"
+  );
+
   host.close();
   await new Promise((r) => setTimeout(r, 150));
 

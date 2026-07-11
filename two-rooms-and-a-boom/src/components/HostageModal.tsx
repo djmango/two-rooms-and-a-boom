@@ -28,7 +28,7 @@ export default function HostageModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-head">
-          <h2>Time&rsquo;s up! Pick your hostages</h2>
+          <h2>Time&rsquo;s up! Rooms just swapped</h2>
           <button
             type="button"
             className="btn ghost modal-close"
@@ -39,7 +39,8 @@ export default function HostageModal({
           </button>
         </div>
         <p className="form-hint">
-          The round ended. As Room {room}&rsquo;s leader, choose who goes to the other room.
+          The exchange already happened automatically. As Room {room}&rsquo;s leader, get a head
+          start on who goes over next time.
         </p>
         {hostagesAllowed > 0 ? (
           <HostagePicker
@@ -55,7 +56,7 @@ export default function HostageModal({
             confirmLabel="Confirm & close"
           />
         ) : (
-          <p className="form-hint">No hostages to send this round.</p>
+          <p className="form-hint">No hostages to send next round.</p>
         )}
       </div>
     </div>
