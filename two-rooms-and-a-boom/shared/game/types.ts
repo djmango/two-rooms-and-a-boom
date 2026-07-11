@@ -111,7 +111,7 @@ export type ClientMessage =
   | { type: "reveal_all" }
   | { type: "kick"; playerId: string }
   | { type: "vote_leader"; targetId: string | null }
-  | { type: "select_hostages"; playerIds: string[] }
+  | { type: "select_hostages"; playerIds: string[]; newLeaderId?: string | null }
   | { type: "request_share"; targetId: string; level: ShareLevel }
   | { type: "respond_share"; shareId: string; accept: boolean }
   | { type: "cancel_share"; shareId: string }

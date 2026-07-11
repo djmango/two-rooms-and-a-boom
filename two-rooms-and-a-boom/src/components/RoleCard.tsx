@@ -1,5 +1,6 @@
 import type { CardDef } from "@shared/game/types";
 import { useState } from "react";
+import { cardImageUrl } from "@/lib/cardImages";
 
 type Stage = "hidden" | "peeking" | "revealed";
 
@@ -98,6 +99,13 @@ export default function RoleCard({
                 <h3>{card.team} team</h3>
                 <p className="short">Tap to see your full role</p>
               </article>
+            ) : cardImageUrl(card) ? (
+              <img
+                className="role-card-art"
+                src={cardImageUrl(card)!}
+                alt={`${card.name}: ${card.ability}`}
+                draggable={false}
+              />
             ) : (
               <article className={`role-card team-${card.team}`}>
                 <div className="team">{card.team}</div>

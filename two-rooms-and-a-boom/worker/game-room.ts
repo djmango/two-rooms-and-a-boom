@@ -379,7 +379,7 @@ export class GameRoom extends DurableObject<Env> {
           this.voteLeader(state, player.id, msg.targetId);
           break;
         case "select_hostages":
-          this.selectHostages(state, player.id, msg.playerIds);
+          this.selectHostages(state, player.id, msg.playerIds, msg.newLeaderId);
           break;
         case "request_share":
           this.requestShare(state, player.id, msg.targetId, msg.level);
@@ -616,11 +616,17 @@ export class GameRoom extends DurableObject<Env> {
     state.activeShares = [];
   }
 
-  private selectHostages(state: RoomState, actorId: string, playerIds: string[]): void {
+  private selectHostages(
+    state: RoomState,
+    actorId: string,
+    playerIds: string[],
+    newLeaderId?: string | null
+  ): void {
     if (state.phase !== "playing") throw new Error("Hostages can only be picked while playing.");
     const actor = state.players.find((p) => p.id === actorId);
     if (!actor?.room) throw new Error("You are not assigned to a room.");
-    if (state.leaders[actor.room] !== actorId) {
+    const room = actor.room;
+    if (state.leaders[room] !== actorId) {
       throw new Error("Only your room's leader can select hostages.");
     }
 
@@ -633,12 +639,32 @@ export class GameRoom extends DurableObject<Env> {
       throw new Error(`You can only send ${maxHostages} hostage${maxHostages === 1 ? "" : "s"} this round.`);
     }
     for (const id of ids) {
-      if (id === actorId) throw new Error("The leader can't be a hostage.");
       const p = state.players.find((pp) => pp.id === id);
-      if (!p || p.room !== actor.room) throw new Error("Hostages must be from your own room.");
+      if (!p || p.room !== room) throw new Error("Hostages must be from your own room.");
     }
 
-    state.hostageSelections[actor.room] = ids;
+    // A leader can choose to go out as a hostage themselves (abdicating),
+    // but only if they hand the leadership to someone staying behind first.
+    const abdicating = ids.includes(actorId);
+    if (abdicating) {
+      if (!newLeaderId) {
+        throw new Error("Pick who takes over as leader before you can step down.");
+      }
+      if (newLeaderId === actorId) {
+        throw new Error("The new leader can't be the outgoing leader.");
+      }
+      if (ids.includes(newLeaderId)) {
+        throw new Error("The new leader can't also be a hostage.");
+      }
+      const successor = state.players.find((p) => p.id === newLeaderId);
+      if (!successor || successor.room !== room) {
+        throw new Error("The new leader must be from your own room.");
+      }
+      state.leaders[room] = newLeaderId;
+      state.leaderVotes[room] = {};
+    }
+
+    state.hostageSelections[room] = ids;
   }
 
   private voteLeader(state: RoomState, actorId: string, targetId: string | null): void {

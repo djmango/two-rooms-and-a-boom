@@ -8,6 +8,7 @@ import RoleCard from "@/components/RoleCard";
 import LeaderPanel from "@/components/LeaderPanel";
 import SharePanel from "@/components/SharePanel";
 import SharePromptModal from "@/components/SharePromptModal";
+import HostageModal from "@/components/HostageModal";
 import TimerPanel from "@/components/TimerPanel";
 import CardPicker from "@/components/CardPicker";
 import QrCode from "@/components/QrCode";
@@ -36,6 +37,7 @@ export default function GamePage() {
   const [cardRevealed, setCardRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
   const [shareOpen, setShareOpen] = useState(true);
+  const [hostageModalOpen, setHostageModalOpen] = useState(false);
 
   useEffect(() => {
     if (!code) {
@@ -56,6 +58,10 @@ export default function GamePage() {
     if (state?.phase === "playing") setCardRevealed(false);
     if (state?.phase === "ended") setCardRevealed(true);
   }, [state?.phase]);
+
+  useEffect(() => {
+    setHostageModalOpen(false);
+  }, [state?.round?.index]);
 
   const playsetBlurb = useMemo(() => {
     const ps = playsets.find((p) => p.id === state?.playsetId);
@@ -289,8 +295,8 @@ export default function GamePage() {
                       isLeader={Boolean(state.you.isLeader)}
                       hostagesAllowed={state.round?.hostages ?? 0}
                       onVote={(targetId) => send({ type: "vote_leader", targetId })}
-                      onSelectHostages={(playerIds) =>
-                        send({ type: "select_hostages", playerIds })
+                      onSelectHostages={(playerIds, newLeaderId) =>
+                        send({ type: "select_hostages", playerIds, newLeaderId })
                       }
                     />
                   )}
@@ -339,7 +345,24 @@ export default function GamePage() {
                         send({ type: "reveal_all" });
                       }
                     }}
+                    onRoundEnd={() => {
+                      if (state.you?.isLeader) setHostageModalOpen(true);
+                    }}
                   />
+
+                  {hostageModalOpen && state.you?.room && state.rooms && state.you.isLeader && (
+                    <HostageModal
+                      players={state.players}
+                      youId={state.you.id}
+                      room={state.you.room}
+                      roomInfo={state.rooms[state.you.room]}
+                      hostagesAllowed={state.round?.hostages ?? 0}
+                      onSelectHostages={(playerIds, newLeaderId) =>
+                        send({ type: "select_hostages", playerIds, newLeaderId })
+                      }
+                      onClose={() => setHostageModalOpen(false)}
+                    />
+                  )}
 
                   <div className="lobby-actions">
                     <button type="button" className="btn ghost danger" onClick={leave}>

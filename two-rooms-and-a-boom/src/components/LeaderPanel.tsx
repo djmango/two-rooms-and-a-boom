@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import type { PublicPlayer, RoomLeaderInfo } from "@shared/game/types";
+import HostagePicker from "./HostagePicker";
 
 export default function LeaderPanel({
   players,
@@ -18,32 +18,15 @@ export default function LeaderPanel({
   isLeader: boolean;
   hostagesAllowed: number;
   onVote: (targetId: string | null) => void;
-  onSelectHostages: (ids: string[]) => void;
+  onSelectHostages: (playerIds: string[], newLeaderId?: string) => void;
 }) {
   const roommates = players.filter((p) => p.room === room);
   const leader = roommates.find((p) => p.id === roomInfo.leaderId);
   const myVote = youId ? roomInfo.votes[youId] : undefined;
 
-  const [draft, setDraft] = useState<string[]>(roomInfo.hostageIds);
-  useEffect(() => {
-    setDraft(roomInfo.hostageIds);
-  }, [roomInfo.hostageIds]);
-
-  function toggleDraft(id: string) {
-    setDraft((cur) => {
-      if (cur.includes(id)) return cur.filter((x) => x !== id);
-      if (cur.length >= hostagesAllowed) return cur;
-      return [...cur, id];
-    });
-  }
-
   function voteCount(id: string): number {
     return Object.values(roomInfo.votes).filter((t) => t === id).length;
   }
-
-  const dirty =
-    draft.length !== roomInfo.hostageIds.length ||
-    draft.some((id) => !roomInfo.hostageIds.includes(id));
 
   return (
     <div className="leader-panel">
@@ -63,37 +46,14 @@ export default function LeaderPanel({
       </div>
 
       {isLeader && hostagesAllowed > 0 && (
-        <div className="hostage-picker">
-          <p className="form-hint">
-            Pick up to {hostagesAllowed} hostage{hostagesAllowed === 1 ? "" : "s"} to send to
-            the other room
-          </p>
-          <ul className="hostage-list">
-            {roommates
-              .filter((p) => p.id !== youId)
-              .map((p) => (
-                <li key={p.id}>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={draft.includes(p.id)}
-                      onChange={() => toggleDraft(p.id)}
-                      disabled={!draft.includes(p.id) && draft.length >= hostagesAllowed}
-                    />
-                    {p.name}
-                  </label>
-                </li>
-              ))}
-          </ul>
-          <button
-            type="button"
-            className="btn secondary"
-            disabled={!dirty}
-            onClick={() => onSelectHostages(draft)}
-          >
-            Confirm hostages
-          </button>
-        </div>
+        <HostagePicker
+          players={players}
+          youId={youId}
+          room={room}
+          hostagesAllowed={hostagesAllowed}
+          currentHostageIds={roomInfo.hostageIds}
+          onConfirm={onSelectHostages}
+        />
       )}
 
       {!isLeader && roomInfo.hostageIds.length > 0 && (
