@@ -5,6 +5,7 @@ import {
   assignRooms,
   buildDeck,
   getPlayset,
+  pickableCards,
   roundsFor,
 } from "../shared/game/deck";
 import type {
@@ -58,6 +59,10 @@ interface WsAttach {
 const MAX_PLAYERS = 30;
 const IDLE_ALARM_MS = 1000 * 60 * 60 * 6; // 6h cleanup
 const NAME_MAX = 24;
+
+// Card IDs the host is allowed to toggle into a "custom-mix" deck.
+// Built once at module load from the catalog.
+const PICKABLE_CARD_IDS: ReadonlySet<string> = new Set(pickableCards().map((c) => c.id));
 
 // Joining or creating a room as "test" (any case) drops in a handful of
 // ready bot players so solo dev/testing doesn't need extra devices/tabs.
@@ -309,6 +314,17 @@ export class GameRoom extends DurableObject<Env> {
           getPlayset(msg.playsetId);
           state.playsetId = msg.playsetId;
           state.playerCountTarget = clamp(Number(msg.playerCount) || state.playerCountTarget, 4, MAX_PLAYERS);
+          if (msg.playsetId === "custom-mix") {
+            const ids = [...new Set(msg.cardIds ?? [])];
+            for (const id of ids) {
+              if (!PICKABLE_CARD_IDS.has(id)) {
+                throw new Error(`Card ${id} isn't pickable in a custom mix.`);
+              }
+            }
+            state.packIds = ids;
+          } else {
+            state.packIds = [];
+          }
           break;
         case "start":
           await this.startGame(state, player.id);
@@ -690,10 +706,21 @@ export class GameRoom extends DurableObject<Env> {
     const roundIndex = Math.min(state.roundIndex, rounds.length - 1);
     const round = rounds[roundIndex]!;
     const viewer = viewerId ? state.players.find((p) => p.id === viewerId) : null;
+    const viewerRoom = viewer?.room ?? null;
 
     let remainingMs: number | null = null;
     if (state.roundPaused) remainingMs = state.roundPausedRemainingMs;
     else if (state.roundEndsAt) remainingMs = Math.max(0, state.roundEndsAt - Date.now());
+
+    // Leadership is room-local information: the two rooms are physically
+    // separate, so a viewer should only ever learn who leads their own
+    // room, never the other one.
+    const redactedRoom = { leaderId: null, hostageIds: [], votes: {} };
+    const ownRoomInfo = (room: "A" | "B") => ({
+      leaderId: state.leaders[room],
+      hostageIds: state.hostageSelections[room],
+      votes: state.leaderVotes[room],
+    });
 
     return {
       code: state.code,
@@ -701,13 +728,14 @@ export class GameRoom extends DurableObject<Env> {
       playsetId: state.playsetId,
       playsetName: playset.name,
       playerCountTarget: state.playerCountTarget,
+      customCardIds: state.playsetId === "custom-mix" ? state.packIds.slice() : null,
       players: state.players.map((p) => ({
         id: p.id,
         name: p.name,
         connected: p.isBot ? true : this.isConnected(p.id),
         ready: p.ready,
         isHost: p.id === state.hostId,
-        isLeader: p.room != null && state.leaders[p.room] === p.id,
+        isLeader: p.room != null && p.room === viewerRoom && state.leaders[p.room] === p.id,
         isBot: Boolean(p.isBot),
         room: state.phase === "lobby" ? null : p.room,
       })),
@@ -727,19 +755,11 @@ export class GameRoom extends DurableObject<Env> {
             },
       buriedPresent: Boolean(state.buried),
       rooms:
-        state.phase === "lobby"
+        state.phase === "lobby" || !viewerRoom
           ? null
           : {
-              A: {
-                leaderId: state.leaders.A,
-                hostageIds: state.hostageSelections.A,
-                votes: state.leaderVotes.A,
-              },
-              B: {
-                leaderId: state.leaders.B,
-                hostageIds: state.hostageSelections.B,
-                votes: state.leaderVotes.B,
-              },
+              A: viewerRoom === "A" ? ownRoomInfo("A") : redactedRoom,
+              B: viewerRoom === "B" ? ownRoomInfo("B") : redactedRoom,
             },
       you: viewer
         ? {

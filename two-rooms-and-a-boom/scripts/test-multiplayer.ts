@@ -158,20 +158,45 @@ async function main() {
     Eli: guests[4]!,
   };
 
-  const leaderA = started.state.players.find((p: any) => p.room === "A" && p.isLeader);
-  const leaderB = started.state.players.find((p: any) => p.room === "B" && p.isLeader);
+  // Leadership is room-local: a viewer only ever sees their own room's
+  // leader, so we ask a representative member of each room what THEY see,
+  // rather than reading isLeader off a single (host) viewpoint.
+  const hostRoom = started.state.you.room as "A" | "B";
+  const otherRoom = hostRoom === "A" ? "B" : "A";
+
+  const otherRoomMemberNames = started.state.players
+    .filter((p: any) => p.room === otherRoom)
+    .map((p: any) => p.name);
+  const otherRepName = otherRoomMemberNames.find((n: string) => n !== "Alex") ?? otherRoomMemberNames[0]!;
+  const otherRepClient = nameToClient[otherRepName]!;
+  const otherRepState = (
+    await otherRepClient.wait((m) => m.type === "state" && m.state?.phase === "playing")
+  ).state;
+
+  const hostRoomLeader = started.state.players.find((p: any) => p.room === hostRoom && p.isLeader);
+  const otherRoomLeader = otherRepState.players.find((p: any) => p.room === otherRoom && p.isLeader);
+  const leaderA = hostRoom === "A" ? hostRoomLeader : otherRoomLeader;
+  const leaderB = hostRoom === "B" ? hostRoomLeader : otherRoomLeader;
   assert(!!leaderA && !!leaderB, `each room has a leader (A=${leaderA?.name}, B=${leaderB?.name})`);
   assert(
-    started.state.players.filter((p: any) => p.room === "A" && p.isLeader).length === 1,
-    "exactly one leader in room A"
+    started.state.players.filter((p: any) => p.room === hostRoom && p.isLeader).length === 1,
+    "exactly one leader in the host's own room, from the host's view"
   );
   assert(
-    started.state.players.filter((p: any) => p.room === "B" && p.isLeader).length === 1,
-    "exactly one leader in room B"
+    otherRepState.players.filter((p: any) => p.room === otherRoom && p.isLeader).length === 1,
+    "exactly one leader in the other room, from that room's own view"
   );
   assert(
-    started.state.rooms?.A?.leaderId === leaderA.id && started.state.rooms?.B?.leaderId === leaderB.id,
-    "rooms.leaderId matches players' isLeader flags"
+    started.state.rooms?.[hostRoom]?.leaderId === hostRoomLeader.id,
+    "rooms.<hostRoom>.leaderId matches the host's own leader"
+  );
+  assert(
+    started.state.rooms?.[otherRoom]?.leaderId === null,
+    "the other room's leaderId is redacted from the host's view (no cross-room leader share)"
+  );
+  assert(
+    !started.state.players.some((p: any) => p.room === otherRoom && p.isLeader),
+    "no player in the other room shows isLeader=true from the host's view"
   );
 
   const leaderAClient = nameToClient[leaderA.name]!;
@@ -396,6 +421,8 @@ async function main() {
   guests.forEach((g) => g.close());
 
   await testTestMode();
+  await testClassicSpyPlayset();
+  await testCustomMix();
   await testLeaderAbdication();
 
   console.log(failed ? `\n${failed} MULTIPLAYER FAILURES` : "\nALL MULTIPLAYER TESTS PASSED");
@@ -572,6 +599,140 @@ async function testLeaderAbdication() {
     exchanged.state.you.room !== room,
     `the former leader was actually exchanged out of room ${room} at end of round`
   );
+
+  host.close();
+  guests.forEach((g) => g.close());
+}
+
+async function testClassicSpyPlayset() {
+  // The "Classic + Spy" playset needs 11+ players (color-sharing pack), so
+  // exercise it with a real host + 10 guests rather than the fixed 6-player
+  // test-mode bots.
+  const createRes = await fetch(`${BASE}/api/rooms`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ hostName: "SpyHost", playsetId: "basic", playerCount: 11 }),
+  });
+  const created = await createRes.json();
+  const host = new Client();
+  await host.connect(created.code);
+  host.send({ type: "hello", name: "SpyHost", playerId: created.playerId, secret: created.secret });
+  await host.wait((m) => m.type === "welcome");
+
+  host.send({ type: "set_playset", playsetId: "classic-spy", playerCount: 11 });
+  const psUpdate = await host.wait((m) => m.type === "state" && m.state?.playsetId === "classic-spy");
+  assert(psUpdate.state.playsetName === "Classic + Spy", "classic-spy playset selectable");
+
+  const guests: Client[] = [];
+  for (let i = 0; i < 10; i++) {
+    const g = new Client();
+    await g.connect(created.code);
+    g.send({ type: "hello", name: `SpyGuest${i}` });
+    await g.wait((m) => m.type === "welcome");
+    guests.push(g);
+  }
+  let players = 1;
+  while (players < 11) {
+    const upd = await host.wait((m) => m.type === "state");
+    players = upd.state.players.length;
+  }
+  assert(players === 11, `classic-spy room reached 11 players (got ${players})`);
+
+  host.send({ type: "start" });
+  const started = await host.wait((m) => m.type === "state" && m.state?.phase === "playing");
+  assert(started.state.phase === "playing", "classic-spy game starts at 11 players");
+
+  const privateCards = [started.state.you.card?.name as string];
+  for (const g of guests) {
+    const st = await g.wait((m) => m.type === "state" && m.state?.phase === "playing" && m.state?.you?.card);
+    privateCards.push(st.state.you.card.name);
+  }
+  assert(privateCards.length === 11, `11 private cards dealt (got ${privateCards.length})`);
+  assert(privateCards.includes("President"), `deck has President among ${privateCards.join(",")}`);
+  assert(privateCards.includes("Bomber"), `deck has Bomber among ${privateCards.join(",")}`);
+  assert(privateCards.includes("Blue Spy"), `deck has Blue Spy among ${privateCards.join(",")}`);
+  assert(privateCards.includes("Red Spy"), `deck has Red Spy among ${privateCards.join(",")}`);
+
+  host.close();
+  guests.forEach((g) => g.close());
+}
+
+async function testCustomMix() {
+  // The host picks individual cards for a "custom-mix" deck and those cards
+  // (plus the auto core/filler) are what gets dealt.
+  const createRes = await fetch(`${BASE}/api/rooms`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ hostName: "MixHost", playsetId: "basic", playerCount: 10 }),
+  });
+  const created = await createRes.json();
+  const host = new Client();
+  await host.connect(created.code);
+  host.send({
+    type: "hello",
+    name: "MixHost",
+    playerId: created.playerId,
+    secret: created.secret,
+  });
+  await host.wait((m) => m.type === "welcome");
+
+  // Pick an invalid card (a pack id) -> must be rejected.
+  host.send({ type: "set_playset", playsetId: "custom-mix", playerCount: 10, cardIds: ["doctor-engineer"] });
+  const invalidErr = await host.wait((m) => m.type === "error");
+  assert(/isn.t pickable/i.test(invalidErr.message || ""), `custom-mix rejects pack id: ${invalidErr.message}`);
+
+  // Pick a core card -> must be rejected.
+  host.send({ type: "set_playset", playsetId: "custom-mix", playerCount: 10, cardIds: ["b001"] });
+  const coreErr = await host.wait((m) => m.type === "error");
+  assert(/isn.t pickable/i.test(coreErr.message || ""), `custom-mix rejects core card: ${coreErr.message}`);
+
+  // Valid pick: Doctor, Engineer, Survivor, Victim (fits 10 players).
+  const picked = ["b014", "r014", "g028", "g025"];
+  host.send({ type: "set_playset", playsetId: "custom-mix", playerCount: 10, cardIds: picked });
+  const psUpdate = await host.wait(
+    (m) => m.type === "state" && m.state?.playsetId === "custom-mix" && m.state?.customCardIds
+  );
+  assert(psUpdate.state.playsetName === "Custom mix", "custom-mix playset selectable");
+  assert(
+    JSON.stringify(psUpdate.state.customCardIds) === JSON.stringify(picked),
+    `custom-mix stores picked card ids (got ${JSON.stringify(psUpdate.state.customCardIds)})`
+  );
+
+  const guests: Client[] = [];
+  for (let i = 0; i < 9; i++) {
+    const g = new Client();
+    await g.connect(created.code);
+    g.send({ type: "hello", name: `MixGuest${i}` });
+    await g.wait((m) => m.type === "welcome");
+    guests.push(g);
+  }
+  let players = 1;
+  while (players < 10) {
+    const upd = await host.wait((m) => m.type === "state");
+    players = upd.state.players.length;
+  }
+  assert(players === 10, `custom-mix room reached 10 players (got ${players})`);
+
+  host.send({ type: "start" });
+  const started = await host.wait((m) => m.type === "state" && m.state?.phase === "playing");
+  assert(started.state.phase === "playing", "custom-mix game starts at 10 players");
+
+  const privateCards = [started.state.you.card?.name as string];
+  for (const g of guests) {
+    const st = await g.wait((m) => m.type === "state" && m.state?.phase === "playing" && m.state?.you?.card);
+    privateCards.push(st.state.you.card.name);
+  }
+  assert(privateCards.length === 10, `10 private cards dealt (got ${privateCards.length})`);
+  assert(privateCards.includes("President"), `custom-mix has President among ${privateCards.join(",")}`);
+  assert(privateCards.includes("Bomber"), `custom-mix has Bomber among ${privateCards.join(",")}`);
+  assert(privateCards.includes("Doctor"), `custom-mix has picked Doctor among ${privateCards.join(",")}`);
+  assert(privateCards.includes("Engineer"), `custom-mix has picked Engineer among ${privateCards.join(",")}`);
+  assert(privateCards.includes("Survivor"), `custom-mix has picked Survivor among ${privateCards.join(",")}`);
+  assert(privateCards.includes("Victim"), `custom-mix has picked Victim among ${privateCards.join(",")}`);
+  // No unpicked advanced roles leaked in.
+  assert(!privateCards.includes("Agent"), `custom-mix excludes unpicked Agent`);
+  // 10 is even, so no auto Gambler.
+  assert(!privateCards.includes("Gambler"), `custom-mix 10 (even) has no auto Gambler`);
 
   host.close();
   guests.forEach((g) => g.close());

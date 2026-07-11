@@ -1358,6 +1358,117 @@ main {
   flex: none;
 }
 
+/* ---------- Card picker (custom mix) ---------- */
+
+.card-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 0.9rem 1rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.card-picker-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.card-picker-section-label {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.card-picker-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.card-chip {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-2);
+  background: var(--panel-2);
+  color: var(--ink);
+  font-family: var(--font-body);
+  text-align: left;
+  cursor: pointer;
+  min-width: 92px;
+  max-width: 140px;
+  transition: border-color 0.15s var(--ease), background 0.15s var(--ease);
+}
+
+.card-chip:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.card-chip-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.card-chip-tag {
+  font-size: 0.62rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+  color: var(--ink-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-chip.team-blue {
+  border-left: 3px solid var(--blue);
+}
+.card-chip.team-red {
+  border-left: 3px solid var(--red);
+}
+.card-chip.team-grey {
+  border-left: 3px solid var(--grey);
+}
+.card-chip.team-leader {
+  border-left: 3px solid var(--gold);
+}
+
+.card-chip.is-on {
+  background: var(--panel);
+  border-color: var(--gold);
+}
+.card-chip.is-on.team-blue {
+  background: rgba(10, 132, 255, 0.18);
+}
+.card-chip.is-on.team-red {
+  background: rgba(255, 69, 58, 0.18);
+}
+.card-chip.is-on.team-grey {
+  background: rgba(107, 114, 128, 0.22);
+}
+.card-chip.is-on .card-chip-tag {
+  color: var(--gold);
+}
+
+.card-chip.locked {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.card-picker-summary {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--ink-dim);
+}
+
 /* ---------- Timer ---------- */
 
 .timer-block {

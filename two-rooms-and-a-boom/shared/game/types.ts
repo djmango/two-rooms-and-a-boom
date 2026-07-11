@@ -58,6 +58,7 @@ export interface PublicState {
   playsetId: string;
   playsetName: string;
   playerCountTarget: number;
+  customCardIds: string[] | null;
   players: PublicPlayer[];
   hostId: string | null;
   round: RoundInfo | null;
@@ -78,7 +79,7 @@ export type ClientMessage =
   | { type: "hello"; name: string; playerId?: string; secret?: string }
   | { type: "set_name"; name: string }
   | { type: "ready"; ready: boolean }
-  | { type: "set_playset"; playsetId: string; playerCount: number }
+  | { type: "set_playset"; playsetId: string; playerCount: number; cardIds?: string[] }
   | { type: "start" }
   | { type: "reshuffle" }
   | { type: "start_round" }

@@ -8,6 +8,7 @@ import RoleCard from "@/components/RoleCard";
 import LeaderPanel from "@/components/LeaderPanel";
 import HostageModal from "@/components/HostageModal";
 import TimerPanel from "@/components/TimerPanel";
+import CardPicker from "@/components/CardPicker";
 import QrCode from "@/components/QrCode";
 
 export default function GamePage() {
@@ -107,18 +108,20 @@ export default function GamePage() {
               {code}
             </button>
             {copied && <span className="copy-toast">Copied</span>}
-            <button
-              type="button"
-              className="btn secondary share-btn"
-              onClick={() => setShareOpen((v) => !v)}
-              aria-expanded={shareOpen}
-            >
-              {shareOpen ? "Hide share" : "Share"}
-            </button>
+            {isLobby && (
+              <button
+                type="button"
+                className="btn secondary share-btn"
+                onClick={() => setShareOpen((v) => !v)}
+                aria-expanded={shareOpen}
+              >
+                {shareOpen ? "Hide share" : "Share"}
+              </button>
+            )}
           </div>
         </header>
 
-        {shareOpen && (
+        {isLobby && shareOpen && (
           <div className="share-panel" role="dialog" aria-label="Share room">
             <div className="share-panel-head">
               <h2>Invite players</h2>
@@ -221,18 +224,36 @@ export default function GamePage() {
                         </select>
                       </label>
                       <p className="form-hint">{playsetBlurb}</p>
-                      <button
-                        type="button"
-                        className="btn primary"
-                        disabled={state.players.length < 4}
-                        onClick={() => {
-                          setError("");
-                          send({ type: "start" });
-                        }}
-                      >
-                        Deal &amp; start
-                      </button>
                     </div>
+                  )}
+
+                  {state.playsetId === "custom-mix" && (
+                    <CardPicker
+                      selectedIds={state.customCardIds ?? []}
+                      disabled={!isHost}
+                      onChange={(cardIds) =>
+                        send({
+                          type: "set_playset",
+                          playsetId: "custom-mix",
+                          playerCount: Math.max(4, state.players.length),
+                          cardIds,
+                        })
+                      }
+                    />
+                  )}
+
+                  {isHost && (
+                    <button
+                      type="button"
+                      className="btn primary"
+                      disabled={state.players.length < 4}
+                      onClick={() => {
+                        setError("");
+                        send({ type: "start" });
+                      }}
+                    >
+                      Deal &amp; start
+                    </button>
                   )}
 
                   <div className="lobby-actions">
