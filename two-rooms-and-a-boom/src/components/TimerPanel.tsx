@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { RoundInfo } from "@shared/game/types";
 import { playRoundEndAlarm } from "@/lib/sound";
+import { vibrateRoundEnd } from "@/lib/haptics";
 
 const RING_RADIUS = 52;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
@@ -46,6 +47,7 @@ export default function TimerPanel({
         if (alarmedEndsAt.current !== round.endsAt) {
           alarmedEndsAt.current = round.endsAt;
           playRoundEndAlarm();
+          vibrateRoundEnd();
         }
       }
     };
