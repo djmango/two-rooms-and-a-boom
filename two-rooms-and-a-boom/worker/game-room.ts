@@ -1,9 +1,12 @@
 import { DurableObject } from "cloudflare:workers";
 import { normalizeCode } from "../shared/game/codes";
 import {
+  HOT_POTATO_ID,
   PLAYSETS,
   assignRooms,
   buildDeck,
+  cardFromId,
+  displayTeam,
   getPlayset,
   pickableCards,
   roundsFor,
@@ -13,7 +16,11 @@ import type {
   ClientMessage,
   Phase,
   PublicState,
+  RevealedShare,
   ServerMessage,
+  ShareLevel,
+  ShareRequest,
+  Team,
 } from "../shared/game/types";
 
 export interface Env {
@@ -48,12 +55,23 @@ interface RoomState {
   leaders: { A: string | null; B: string | null };
   hostageSelections: { A: string[]; B: string[] };
   leaderVotes: { A: Record<string, string>; B: Record<string, string> };
+  activeShares: ShareRequest[];
+  revealedShares: StoredReveal[];
   createdAt: number;
   updatedAt: number;
 }
 
 interface WsAttach {
   playerId: string;
+}
+
+interface StoredReveal {
+  fromId: string;
+  fromName: string;
+  toId: string;
+  level: ShareLevel;
+  team: Team;
+  card: CardDef | null;
 }
 
 const MAX_PLAYERS = 30;
@@ -214,6 +232,8 @@ export class GameRoom extends DurableObject<Env> {
       leaders: { A: null, B: null },
       hostageSelections: { A: [], B: [] },
       leaderVotes: { A: {}, B: {} },
+      activeShares: [],
+      revealedShares: [],
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
@@ -361,6 +381,15 @@ export class GameRoom extends DurableObject<Env> {
         case "select_hostages":
           this.selectHostages(state, player.id, msg.playerIds);
           break;
+        case "request_share":
+          this.requestShare(state, player.id, msg.targetId, msg.level);
+          break;
+        case "respond_share":
+          this.respondShare(state, player.id, msg.shareId, msg.accept);
+          break;
+        case "cancel_share":
+          this.cancelShare(state, player.id, msg.shareId);
+          break;
         default:
           throw new Error("Unknown action");
       }
@@ -504,6 +533,8 @@ export class GameRoom extends DurableObject<Env> {
     };
     state.hostageSelections = { A: [], B: [] };
     state.leaderVotes = { A: {}, B: {} };
+    state.activeShares = [];
+    state.revealedShares = [];
   }
 
   private async reshuffle(state: RoomState, actorId: string): Promise<void> {
@@ -516,6 +547,8 @@ export class GameRoom extends DurableObject<Env> {
     state.leaders = { A: null, B: null };
     state.hostageSelections = { A: [], B: [] };
     state.leaderVotes = { A: {}, B: {} };
+    state.activeShares = [];
+    state.revealedShares = [];
     for (const p of state.players) {
       p.card = null;
       p.room = null;
@@ -577,8 +610,10 @@ export class GameRoom extends DurableObject<Env> {
       if (p && p.room === "B") p.room = "A";
     }
     state.hostageSelections = { A: [], B: [] };
-    // Room membership just changed, so clear stale usurpation votes.
+    // Room membership just changed, so clear stale usurpation votes and any
+    // pending card shares (which were room-local and may now span rooms).
     state.leaderVotes = { A: {}, B: {} };
+    state.activeShares = [];
   }
 
   private selectHostages(state: RoomState, actorId: string, playerIds: string[]): void {
@@ -653,6 +688,104 @@ export class GameRoom extends DurableObject<Env> {
     }
   }
 
+  private requestShare(
+    state: RoomState,
+    requesterId: string,
+    targetId: string,
+    level: ShareLevel
+  ): void {
+    if (state.phase !== "playing") throw new Error("Card shares only happen while playing.");
+    const requester = state.players.find((p) => p.id === requesterId);
+    if (!requester?.room) throw new Error("You are not assigned to a room.");
+    if (requesterId === targetId) throw new Error("You can't share with yourself.");
+    const target = state.players.find((p) => p.id === targetId);
+    if (!target || target.room !== requester.room) {
+      throw new Error("You can only share with someone in your own room.");
+    }
+    // One pending share per ordered pair at a time.
+    const dupe = state.activeShares.find(
+      (s) =>
+        s.level === level &&
+        ((s.requesterId === requesterId && s.targetId === targetId) ||
+          (s.requesterId === targetId && s.targetId === requesterId))
+    );
+    if (dupe) throw new Error("A share between you two is already pending.");
+
+    const req: ShareRequest = {
+      id: randomId(),
+      requesterId,
+      requesterName: requester.name,
+      targetId,
+      targetName: target.name,
+      level,
+    };
+    state.activeShares.push(req);
+  }
+
+  private respondShare(
+    state: RoomState,
+    responderId: string,
+    shareId: string,
+    accept: boolean
+  ): void {
+    if (state.phase !== "playing") throw new Error("Card shares only happen while playing.");
+    const idx = state.activeShares.findIndex((s) => s.id === shareId);
+    if (idx < 0) throw new Error("That share is no longer pending.");
+    const share = state.activeShares[idx]!;
+    if (share.targetId !== responderId) {
+      throw new Error("Only the requested player can respond to a share.");
+    }
+    state.activeShares.splice(idx, 1);
+    if (!accept) return;
+
+    const requester = state.players.find((p) => p.id === share.requesterId);
+    const target = state.players.find((p) => p.id === share.targetId);
+    if (!requester || !target || requester.room !== target.room || !requester.card || !target.card) {
+      // Someone left the room or the game ended mid-prompt; just drop it.
+      return;
+    }
+
+    // Record what each side revealed to the other, snapshot at share time.
+    // Color shares use displayTeam so Spies reveal their deception color.
+    state.revealedShares.push({
+      fromId: target.id,
+      fromName: target.name,
+      toId: requester.id,
+      level: share.level,
+      team: displayTeam(target.card),
+      card: share.level === "full" ? { ...target.card } : null,
+    });
+    state.revealedShares.push({
+      fromId: requester.id,
+      fromName: requester.name,
+      toId: target.id,
+      level: share.level,
+      team: displayTeam(requester.card),
+      card: share.level === "full" ? { ...requester.card } : null,
+    });
+
+    // Hot Potato: "sharing = swapping". If either side holds it, the two
+    // swap cards after the reveal.
+    const hot =
+      cardBaseId(requester.card) === HOT_POTATO_ID ||
+      cardBaseId(target.card) === HOT_POTATO_ID;
+    if (hot) {
+      const tmp = requester.card;
+      requester.card = target.card;
+      target.card = tmp;
+    }
+  }
+
+  private cancelShare(state: RoomState, cancellerId: string, shareId: string): void {
+    const idx = state.activeShares.findIndex((s) => s.id === shareId);
+    if (idx < 0) return;
+    const share = state.activeShares[idx]!;
+    if (share.requesterId !== cancellerId) {
+      throw new Error("Only the player who started the share can cancel it.");
+    }
+    state.activeShares.splice(idx, 1);
+  }
+
   private isConnected(playerId: string): boolean {
     for (const ws of this.ctx.getWebSockets()) {
       const a = ws.deserializeAttachment() as WsAttach | null;
@@ -682,6 +815,25 @@ export class GameRoom extends DurableObject<Env> {
     const viewer = viewerId ? state.players.find((p) => p.id === viewerId) : null;
     const viewerRoom = viewer?.room ?? null;
 
+    // Per-viewer share state: the incoming prompt (someone asked to share
+    // with you), your outgoing pending request, and the cards/colors peers
+    // have shared with you so far this game.
+    const incomingShare =
+      state.activeShares.find((s) => s.targetId === viewerId) ?? null;
+    const outgoingShare =
+      state.activeShares.find((s) => s.requesterId === viewerId) ?? null;
+    const revealedToYou: RevealedShare[] = viewerId
+      ? state.revealedShares
+          .filter((r) => r.toId === viewerId)
+          .map((r) => ({
+            peerId: r.fromId,
+            peerName: r.fromName,
+            level: r.level,
+            team: r.team,
+            card: r.card,
+          }))
+      : [];
+
     let remainingMs: number | null = null;
     if (state.roundPaused) remainingMs = state.roundPausedRemainingMs;
     else if (state.roundEndsAt) remainingMs = Math.max(0, state.roundEndsAt - Date.now());
@@ -703,6 +855,9 @@ export class GameRoom extends DurableObject<Env> {
       playsetName: playset.name,
       playerCountTarget: state.playerCountTarget,
       customCardIds: state.playsetId === "custom-mix" ? state.packIds.slice() : null,
+      incomingShare,
+      outgoingShare,
+      revealedToYou,
       players: state.players.map((p) => ({
         id: p.id,
         name: p.name,
@@ -780,6 +935,8 @@ function migrateState(state: RoomState): RoomState {
   if (!state.leaders) state.leaders = { A: null, B: null };
   if (!state.hostageSelections) state.hostageSelections = { A: [], B: [] };
   if (!state.leaderVotes) state.leaderVotes = { A: {}, B: {} };
+  if (!state.activeShares) state.activeShares = [];
+  if (!state.revealedShares) state.revealedShares = [];
 
   // Backfill a leader for rooms that were already mid-game before the
   // leader feature shipped, so they aren't stuck permanently leaderless.
@@ -799,6 +956,10 @@ function pickRandom(ids: string[]): string | null {
   const buf = new Uint32Array(1);
   crypto.getRandomValues(buf);
   return ids[buf[0]! % ids.length]!;
+}
+
+function cardBaseId(card: CardDef): string {
+  return card.id.replace(/-\d+$/, "");
 }
 
 function clamp(n: number, min: number, max: number): number {
