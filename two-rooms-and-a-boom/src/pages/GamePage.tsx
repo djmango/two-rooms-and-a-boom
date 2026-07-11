@@ -7,6 +7,7 @@ import PlayerList from "@/components/PlayerList";
 import RoleCard from "@/components/RoleCard";
 import LeaderPanel from "@/components/LeaderPanel";
 import TimerPanel from "@/components/TimerPanel";
+import CardPicker from "@/components/CardPicker";
 import QrCode from "@/components/QrCode";
 
 export default function GamePage() {
@@ -217,18 +218,36 @@ export default function GamePage() {
                         </select>
                       </label>
                       <p className="form-hint">{playsetBlurb}</p>
-                      <button
-                        type="button"
-                        className="btn primary"
-                        disabled={state.players.length < 4}
-                        onClick={() => {
-                          setError("");
-                          send({ type: "start" });
-                        }}
-                      >
-                        Deal &amp; start
-                      </button>
                     </div>
+                  )}
+
+                  {state.playsetId === "custom-mix" && (
+                    <CardPicker
+                      selectedIds={state.customCardIds ?? []}
+                      disabled={!isHost}
+                      onChange={(cardIds) =>
+                        send({
+                          type: "set_playset",
+                          playsetId: "custom-mix",
+                          playerCount: Math.max(4, state.players.length),
+                          cardIds,
+                        })
+                      }
+                    />
+                  )}
+
+                  {isHost && (
+                    <button
+                      type="button"
+                      className="btn primary"
+                      disabled={state.players.length < 4}
+                      onClick={() => {
+                        setError("");
+                        send({ type: "start" });
+                      }}
+                    >
+                      Deal &amp; start
+                    </button>
                   )}
 
                   <div className="lobby-actions">

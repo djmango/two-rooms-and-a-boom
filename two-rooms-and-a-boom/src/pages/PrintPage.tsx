@@ -8,6 +8,7 @@ import {
   shuffle,
 } from "@shared/game/deck";
 import type { CardDef, PlaysetDef } from "@shared/game/types";
+import CardPicker from "@/components/CardPicker";
 import "@/styles/print.css";
 
 const LEADERS: CardDef[] = [
@@ -35,6 +36,7 @@ export default function PrintPage() {
   const [playsetId, setPlaysetId] = useState("basic");
   const [players, setPlayers] = useState(10);
   const [packIds, setPackIds] = useState<string[]>(["doctor-engineer"]);
+  const [customCardIds, setCustomCardIds] = useState<string[]>([]);
   const [names, setNames] = useState<string[]>([]);
   const [spoilerSafe, setSpoilerSafe] = useState(true);
   const [revealed, setRevealed] = useState<Record<number, boolean>>({});
@@ -45,11 +47,9 @@ export default function PrintPage() {
   const dealResult = useMemo(() => {
     try {
       const count = playset.fixedPlayers ?? players;
-      const { cards, buried } = buildDeck(
-        count,
-        playset,
-        playsetId === "custom" ? packIds : []
-      );
+      const extras =
+        playsetId === "custom" ? packIds : playsetId === "custom-mix" ? customCardIds : [];
+      const { cards, buried } = buildDeck(count, playset, extras);
       const roomOrder = shuffle(
         Array.from({ length: count }, (_, i) => (i < Math.ceil(count / 2) ? "A" : "B") as "A" | "B")
       );
@@ -72,7 +72,7 @@ export default function PrintPage() {
         error: err instanceof Error ? err.message : "Deal failed",
       };
     }
-  }, [playsetId, players, packIds, seed, playset, names]);
+  }, [playsetId, players, packIds, customCardIds, seed, playset, names]);
 
   const deal = dealResult.ok ? dealResult.deal : null;
   const dealError = dealResult.ok ? "" : dealResult.error;
@@ -186,6 +186,13 @@ export default function PrintPage() {
                   </label>
                 ))}
               </div>
+            </fieldset>
+          )}
+
+          {playsetId === "custom-mix" && (
+            <fieldset className="field pack">
+              <legend>Custom mix · pick the cards</legend>
+              <CardPicker selectedIds={customCardIds} onChange={setCustomCardIds} />
             </fieldset>
           )}
 
