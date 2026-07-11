@@ -1,0 +1,63 @@
+import type { PublicPlayer, RoomLeaderInfo } from "@shared/game/types";
+import HostagePicker from "./HostagePicker";
+
+export default function HostageModal({
+  players,
+  youId,
+  room,
+  roomInfo,
+  hostagesAllowed,
+  onSelectHostages,
+  onClose,
+}: {
+  players: PublicPlayer[];
+  youId?: string;
+  room: "A" | "B";
+  roomInfo: RoomLeaderInfo;
+  hostagesAllowed: number;
+  onSelectHostages: (playerIds: string[], newLeaderId?: string) => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="modal-overlay" role="presentation" onClick={onClose}>
+      <div
+        className="modal-card"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Room ${room} hostage selection`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="modal-head">
+          <h2>Time&rsquo;s up! Pick your hostages</h2>
+          <button
+            type="button"
+            className="btn ghost modal-close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            Close
+          </button>
+        </div>
+        <p className="form-hint">
+          The round ended. As Room {room}&rsquo;s leader, choose who goes to the other room.
+        </p>
+        {hostagesAllowed > 0 ? (
+          <HostagePicker
+            players={players}
+            youId={youId}
+            room={room}
+            hostagesAllowed={hostagesAllowed}
+            currentHostageIds={roomInfo.hostageIds}
+            onConfirm={(ids, newLeaderId) => {
+              onSelectHostages(ids, newLeaderId);
+              onClose();
+            }}
+            confirmLabel="Confirm & close"
+          />
+        ) : (
+          <p className="form-hint">No hostages to send this round.</p>
+        )}
+      </div>
+    </div>
+  );
+}
