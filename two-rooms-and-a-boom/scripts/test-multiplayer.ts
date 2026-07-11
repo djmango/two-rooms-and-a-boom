@@ -411,6 +411,7 @@ async function main() {
 
   await testTestMode();
   await testClassicSpyPlayset();
+  await testCustomMix();
 
   console.log(failed ? `\n${failed} MULTIPLAYER FAILURES` : "\nALL MULTIPLAYER TESTS PASSED");
   process.exit(failed ? 1 : 0);
@@ -551,6 +552,87 @@ async function testClassicSpyPlayset() {
   assert(privateCards.includes("Bomber"), `deck has Bomber among ${privateCards.join(",")}`);
   assert(privateCards.includes("Blue Spy"), `deck has Blue Spy among ${privateCards.join(",")}`);
   assert(privateCards.includes("Red Spy"), `deck has Red Spy among ${privateCards.join(",")}`);
+
+  host.close();
+  guests.forEach((g) => g.close());
+}
+
+async function testCustomMix() {
+  // The host picks individual cards for a "custom-mix" deck and those cards
+  // (plus the auto core/filler) are what gets dealt.
+  const createRes = await fetch(`${BASE}/api/rooms`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ hostName: "MixHost", playsetId: "basic", playerCount: 10 }),
+  });
+  const created = await createRes.json();
+  const host = new Client();
+  await host.connect(created.code);
+  host.send({
+    type: "hello",
+    name: "MixHost",
+    playerId: created.playerId,
+    secret: created.secret,
+  });
+  await host.wait((m) => m.type === "welcome");
+
+  // Pick an invalid card (a pack id) -> must be rejected.
+  host.send({ type: "set_playset", playsetId: "custom-mix", playerCount: 10, cardIds: ["doctor-engineer"] });
+  const invalidErr = await host.wait((m) => m.type === "error");
+  assert(/isn.t pickable/i.test(invalidErr.message || ""), `custom-mix rejects pack id: ${invalidErr.message}`);
+
+  // Pick a core card -> must be rejected.
+  host.send({ type: "set_playset", playsetId: "custom-mix", playerCount: 10, cardIds: ["b001"] });
+  const coreErr = await host.wait((m) => m.type === "error");
+  assert(/isn.t pickable/i.test(coreErr.message || ""), `custom-mix rejects core card: ${coreErr.message}`);
+
+  // Valid pick: Doctor, Engineer, Survivor, Victim (fits 10 players).
+  const picked = ["b014", "r014", "g028", "g025"];
+  host.send({ type: "set_playset", playsetId: "custom-mix", playerCount: 10, cardIds: picked });
+  const psUpdate = await host.wait(
+    (m) => m.type === "state" && m.state?.playsetId === "custom-mix" && m.state?.customCardIds
+  );
+  assert(psUpdate.state.playsetName === "Custom mix", "custom-mix playset selectable");
+  assert(
+    JSON.stringify(psUpdate.state.customCardIds) === JSON.stringify(picked),
+    `custom-mix stores picked card ids (got ${JSON.stringify(psUpdate.state.customCardIds)})`
+  );
+
+  const guests: Client[] = [];
+  for (let i = 0; i < 9; i++) {
+    const g = new Client();
+    await g.connect(created.code);
+    g.send({ type: "hello", name: `MixGuest${i}` });
+    await g.wait((m) => m.type === "welcome");
+    guests.push(g);
+  }
+  let players = 1;
+  while (players < 10) {
+    const upd = await host.wait((m) => m.type === "state");
+    players = upd.state.players.length;
+  }
+  assert(players === 10, `custom-mix room reached 10 players (got ${players})`);
+
+  host.send({ type: "start" });
+  const started = await host.wait((m) => m.type === "state" && m.state?.phase === "playing");
+  assert(started.state.phase === "playing", "custom-mix game starts at 10 players");
+
+  const privateCards = [started.state.you.card?.name as string];
+  for (const g of guests) {
+    const st = await g.wait((m) => m.type === "state" && m.state?.phase === "playing" && m.state?.you?.card);
+    privateCards.push(st.state.you.card.name);
+  }
+  assert(privateCards.length === 10, `10 private cards dealt (got ${privateCards.length})`);
+  assert(privateCards.includes("President"), `custom-mix has President among ${privateCards.join(",")}`);
+  assert(privateCards.includes("Bomber"), `custom-mix has Bomber among ${privateCards.join(",")}`);
+  assert(privateCards.includes("Doctor"), `custom-mix has picked Doctor among ${privateCards.join(",")}`);
+  assert(privateCards.includes("Engineer"), `custom-mix has picked Engineer among ${privateCards.join(",")}`);
+  assert(privateCards.includes("Survivor"), `custom-mix has picked Survivor among ${privateCards.join(",")}`);
+  assert(privateCards.includes("Victim"), `custom-mix has picked Victim among ${privateCards.join(",")}`);
+  // No unpicked advanced roles leaked in.
+  assert(!privateCards.includes("Agent"), `custom-mix excludes unpicked Agent`);
+  // 10 is even, so no auto Gambler.
+  assert(!privateCards.includes("Gambler"), `custom-mix 10 (even) has no auto Gambler`);
 
   host.close();
   guests.forEach((g) => g.close());

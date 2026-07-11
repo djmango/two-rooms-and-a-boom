@@ -548,6 +548,18 @@
       ],
       "cardIds": null,
       "oddCard": "g008"
+    },
+    {
+      "id": "custom-mix",
+      "name": "Custom mix",
+      "emoji": "🃏",
+      "blurb": "Pick the exact cards in the deck. The cards you pick are the rules.",
+      "players": [
+        4,
+        30
+      ],
+      "cardIds": null,
+      "oddCard": "g008"
     }
   ],
   "PACKS": [

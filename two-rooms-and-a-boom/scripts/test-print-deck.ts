@@ -166,6 +166,50 @@ assert(
   "classic kaboom 17-player rounds"
 );
 
+// Custom mix: the host picks individual card IDs and those cards (plus the
+// auto core/filler) are what gets dealt.
+{
+  const mix = getPlayset("custom-mix");
+  const picked = ["b014", "r014", "g028", "g025"]; // Doctor, Engineer, Survivor, Victim
+  try {
+    const { cards } = buildDeck(10, mix, picked);
+    assert(cards.length === 10, `custom-mix 10 size=${cards.length}`);
+    assert(cards.some((c) => c.name === "President"), "custom-mix always has President");
+    assert(cards.some((c) => c.name === "Bomber"), "custom-mix always has Bomber");
+    assert(cards.some((c) => c.name === "Doctor"), "custom-mix has picked Doctor");
+    assert(cards.some((c) => c.name === "Engineer"), "custom-mix has picked Engineer");
+    assert(cards.some((c) => c.name === "Survivor"), "custom-mix has picked Survivor");
+    assert(cards.some((c) => c.name === "Victim"), "custom-mix has picked Victim");
+    // No unpicked advanced/grey roles leaked in.
+    const names = cards.map((c) => c.name);
+    assert(!names.includes("Agent"), "custom-mix doesn't include unpicked Agent");
+    assert(!names.includes("Gambler"), "custom-mix 10 (even) has no auto Gambler");
+    console.log("  roles custom-mix 10", names.sort().join(", "));
+  } catch (e) {
+    assert(false, `custom-mix 10: ${(e as Error).message}`);
+  }
+
+  // Odd count should auto-add the Gambler even when nothing grey was picked.
+  try {
+    const { cards } = buildDeck(7, mix, []);
+    const names = cards.map((c) => c.name);
+    assert(cards.length === 7, `custom-mix empty 7 size=${cards.length}`);
+    assert(names.includes("Gambler"), "custom-mix empty 7 auto-adds Gambler for odd count");
+  } catch (e) {
+    assert(false, `custom-mix empty 7: ${(e as Error).message}`);
+  }
+
+  // Picking a core card or the gambler must be rejected.
+  for (const bad of ["b001", "r001", "g008", "b000", "r000"]) {
+    try {
+      buildDeck(10, mix, [bad]);
+      assert(false, `custom-mix should reject picking ${bad}`);
+    } catch {
+      assert(true, `custom-mix rejects picking ${bad}`);
+    }
+  }
+}
+
 console.log("\nPACKS", PACKS.length, "PLAYSETS", PLAYSETS.length);
 console.log(failed ? `${failed} FAILURES` : "ALL PRINT DECK TESTS PASSED");
 process.exit(failed ? 1 : 0);
