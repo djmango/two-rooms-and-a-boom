@@ -28,10 +28,9 @@ export function getPlayset(id: string): PlaysetDef {
 
 // Cards the host can toggle on/off in a "Custom mix" deck. The core
 // (President, Bomber) is always included and the basic team filler cards
-// are auto-balanced to the player count, so neither is pickable. The
-// Gambler (g008) IS pickable -- it's no longer auto-added in a custom mix,
-// so the host chooses whether to include it (handy for balancing an odd
-// player count).
+// fill whatever slots are left over, so neither is pickable. Everything
+// else -- including the Gambler (g008) -- is pickable in any amount; a
+// custom mix has no balance/parity validation.
 export const CORE_CARD_IDS = ["b001", "r001"] as const;
 export const ODD_CARD_ID = "g008";
 export const TEAM_FILLER_IDS = ["b000", "r000"] as const;
@@ -132,6 +131,10 @@ export function buildDeck(
   const bury = Boolean(playset.bury);
   const deckSize = bury ? players + 1 : players;
 
+  if (playset.id === "custom-mix") {
+    return buildCustomMixDeck(deckSize, players, packIds);
+  }
+
   const cards: CardDef[] = [cardFromId("b001"), cardFromId("r001")];
 
   let specials: CardDef[] = [];
@@ -141,21 +144,6 @@ export function buildDeck(
       if (!selected.has(pack.id)) continue;
       if (pack.requires && !selected.has(pack.requires)) continue;
       specials.push(...pack.cardIds.map((id) => cardFromId(id)));
-    }
-  } else if (playset.id === "custom-mix") {
-    // For the custom mix, packIds carries individual card IDs the host
-    // picked, not pack IDs. Validate each is a real, pickable card. The
-    // Gambler (g008) is pickable here -- it's not auto-added in a custom
-    // mix, so the host includes it explicitly if they want it.
-    const seen = new Set<string>();
-    for (const id of packIds) {
-      if (seen.has(id)) continue;
-      seen.add(id);
-      if (CORE_CARD_IDS.includes(id as (typeof CORE_CARD_IDS)[number]) ||
-          TEAM_FILLER_IDS.includes(id as (typeof TEAM_FILLER_IDS)[number])) {
-        throw new Error(`Card ${id} can't be picked in a custom mix; it's auto-included.`);
-      }
-      specials.push(cardFromId(id));
     }
   } else {
     specials = (playset.cardIds || []).map((id) => cardFromId(id));
@@ -172,16 +160,11 @@ export function buildDeck(
     else greyExtras.push(card);
   }
 
-  // Auto-add the odd-card (Gambler) for preset playsets so an odd player
-  // count always balances. Custom mix skips this -- the host picks greys
-  // (including the Gambler) explicitly, and an unbalanced mix is rejected
-  // with a clear error below.
-  if (playset.id !== "custom-mix") {
-    const needOdd = deckSize % 2 === 1;
-    if (needOdd) {
-      if (playset.oddCard) greyExtras.push(cardFromId(playset.oddCard));
-      else if (!greyExtras.length) greyExtras.push(cardFromId("g008"));
-    }
+  // Auto-add the odd-card (Gambler) so an odd player count always balances.
+  const needOdd = deckSize % 2 === 1;
+  if (needOdd) {
+    if (playset.oddCard) greyExtras.push(cardFromId(playset.oddCard));
+    else if (!greyExtras.length) greyExtras.push(cardFromId("g008"));
   }
 
   if (greyExtras.length > remaining) {
@@ -192,14 +175,6 @@ export function buildDeck(
   cards.push(...greyExtras);
 
   if (remaining % 2 !== 0) {
-    if (playset.id === "custom-mix") {
-      const parity = deckSize % 2 === 1 ? "an odd" : "an even";
-      throw new Error(
-        `With ${players} players and ${greyExtras.length} grey role${
-          greyExtras.length === 1 ? "" : "s"
-        }, the deck doesn't balance. Pick ${parity} number of grey roles (like the Gambler) so teams split evenly.`
-      );
-    }
     throw new Error("Roles leave an odd number of team slots.");
   }
 
@@ -233,6 +208,54 @@ export function buildDeck(
     };
   }
   return { cards: shuffled, buried: null };
+}
+
+// Custom mix has no balance/parity rules -- the host can pick any
+// combination of roles in any amount. The core (President, Bomber) is
+// always included, and whatever slots are left over after the picked
+// roles are filled with plain team members (split as evenly as possible).
+// The only unavoidable limit is that you can't deal more unique role
+// cards than there are players.
+function buildCustomMixDeck(
+  deckSize: number,
+  players: number,
+  cardIds: string[]
+): BuiltDeck {
+  const cards: CardDef[] = [cardFromId("b001"), cardFromId("r001")];
+
+  const seen = new Set<string>();
+  const specials: CardDef[] = [];
+  for (const id of cardIds) {
+    if (seen.has(id)) continue;
+    seen.add(id);
+    if (
+      CORE_CARD_IDS.includes(id as (typeof CORE_CARD_IDS)[number]) ||
+      TEAM_FILLER_IDS.includes(id as (typeof TEAM_FILLER_IDS)[number])
+    ) {
+      throw new Error(`Card ${id} can't be picked in a custom mix; it's auto-included.`);
+    }
+    specials.push(cardFromId(id));
+  }
+
+  cards.push(...specials);
+
+  const fillerSlots = deckSize - cards.length;
+  if (fillerSlots < 0) {
+    throw new Error(
+      `You've picked ${specials.length} roles, but a ${players}-player game only has room for ${deckSize - 2}. Remove some roles or add more players.`
+    );
+  }
+
+  const blueFillers = Math.ceil(fillerSlots / 2);
+  const redFillers = fillerSlots - blueFillers;
+  for (let i = 0; i < blueFillers; i += 1) {
+    cards.push({ ...cardFromId("b000"), id: `b000-${i + 1}` });
+  }
+  for (let i = 0; i < redFillers; i += 1) {
+    cards.push({ ...cardFromId("r000"), id: `r000-${i + 1}` });
+  }
+
+  return { cards: shuffle(cards), buried: null };
 }
 
 export function assignRooms(count: number): Array<"A" | "B"> {

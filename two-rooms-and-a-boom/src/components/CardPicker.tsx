@@ -87,11 +87,8 @@ export default function CardPicker({
       ))}
 
       <p className="card-picker-summary">
-        {selectedIds.length} role{selectedIds.length === 1 ? "" : "s"} picked. Blue/Red team
-        filler cards are added automatically to balance the deck to the player count.
-        {selectedIds.length === 0 && (
-          <> For an odd player count, pick a grey role (like the Gambler) so teams balance.</>
-        )}
+        {selectedIds.length} role{selectedIds.length === 1 ? "" : "s"} picked. Mix any combination
+        you want; remaining slots are filled automatically with plain Blue/Red team members.
       </p>
     </div>
   );

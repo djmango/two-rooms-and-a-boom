@@ -78,11 +78,7 @@ for (const ps of PLAYSETS) {
 
   for (const n of tests) {
     try {
-      // Custom mix no longer auto-balances odd counts, so feed it a grey
-      // pick (the Gambler) for odd player counts in this generic loop.
-      const extras =
-        ps.id === "custom-mix" ? (n % 2 === 1 ? ["g008"] : []) : [];
-      const { cards, buried } = buildDeck(n, ps, extras);
+      const { cards, buried } = buildDeck(n, ps, []);
       assert(cards.length === n, `${ps.id} ${n} size=${cards.length}`);
       if (ps.bury) assert(!!buried, `${ps.id} ${n} buried`);
       else assert(!buried, `${ps.id} ${n} no bury`);
@@ -193,17 +189,23 @@ assert(
     assert(false, `custom-mix 10: ${(e as Error).message}`);
   }
 
-  // Custom mix no longer auto-adds the Gambler: an odd count with no grey
-  // picked must be rejected with a clear error (the host picks the Gambler
-  // or another grey explicitly to balance).
+  // Custom mix has no balance/parity validation: an empty pick with an odd
+  // player count should just work, filling the rest with plain team members.
   try {
-    buildDeck(7, mix, []);
-    assert(false, "custom-mix empty 7 should be rejected (no grey to balance odd count)");
+    const { cards } = buildDeck(7, mix, []);
+    assert(cards.length === 7, `custom-mix empty 7 size=${cards.length}`);
+    assert(!cards.some((c) => c.name === "Gambler"), "custom-mix empty 7 has no auto Gambler");
   } catch (e) {
-    assert(
-      /balance/i.test((e as Error).message),
-      `custom-mix empty 7 rejected with balance error: ${(e as Error).message}`
-    );
+    assert(false, `custom-mix empty 7: ${(e as Error).message}`);
+  }
+
+  // Picking way more roles than there are players is the one unavoidable
+  // limit (you can't deal more unique cards than players).
+  try {
+    buildDeck(4, mix, ["b014", "r014", "g028", "g025", "g008"]);
+    assert(false, "custom-mix overload (5 specials in a 4p game) should be rejected");
+  } catch {
+    assert(true, "custom-mix overload rejected");
   }
 
   // Picking a core card or a team-filler must be rejected; the Gambler
