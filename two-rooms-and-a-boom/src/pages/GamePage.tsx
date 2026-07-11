@@ -59,10 +59,6 @@ export default function GamePage() {
     if (state?.phase === "ended") setCardRevealed(true);
   }, [state?.phase]);
 
-  useEffect(() => {
-    setHostageModalOpen(false);
-  }, [state?.round?.index]);
-
   const playsetBlurb = useMemo(() => {
     const ps = playsets.find((p) => p.id === state?.playsetId);
     return ps ? `${ps.blurb} (${ps.players[0]}–${ps.players[1]} players)` : "";
@@ -348,6 +344,10 @@ export default function GamePage() {
                     }}
                     onRoundEnd={() => {
                       if (state.you?.isLeader) setHostageModalOpen(true);
+                      // Finalize the exchange as soon as the timer hits zero
+                      // instead of waiting on a separate manual "End round"
+                      // click -- otherwise rooms never actually swap.
+                      if (isHost) send({ type: "end_round" });
                     }}
                   />
 
