@@ -1,6 +1,7 @@
 import type { CardDef } from "@shared/game/types";
 import { useState } from "react";
 import { cardImageUrl } from "@/lib/cardImages";
+import { displayTeam } from "@shared/game/deck";
 
 type Stage = "hidden" | "peeking" | "revealed";
 
@@ -20,6 +21,10 @@ export default function RoleCard({
   if (!card) return null;
 
   const stage: Stage = revealed ? "revealed" : peeking ? "peeking" : "hidden";
+  // Spies print in their deceptive color, not their true team's -- a quick
+  // peek at your own card should show exactly what a glance at the card
+  // shows anyone else, so Spies peek their apparent (cover) team here too.
+  const peekTeam = displayTeam(card);
 
   // Two independent, full (0deg <-> 180deg) flips on different axes, so the
   // card always lands flat and readable: never resting mid-rotation.
@@ -94,9 +99,9 @@ export default function RoleCard({
           </div>
           <div className="role-card-face role-card-face-back" style={{ transform: backLocalRotate }}>
             {stage === "peeking" ? (
-              <article className={`role-card role-card-peek team-${card.team}`}>
-                <div className="team">{card.team}</div>
-                <h3>{card.team} team</h3>
+              <article className={`role-card role-card-peek team-${peekTeam}`}>
+                <div className="team">{peekTeam}</div>
+                <h3>{peekTeam} team</h3>
                 <p className="short">Tap to see your full role</p>
               </article>
             ) : cardImageUrl(card) ? (
