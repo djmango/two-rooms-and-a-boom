@@ -1,23 +1,11 @@
-// Auto-generated from public/pnp-cards/manifest.json. Maps a card's
-// catalog id to its cropped PnP graphic (served from /pnp-cards/).
-// Cards without art here fall back to the text card layout.
-export const CARD_IMAGE_FILES: Record<string, string> = {
-  "b000": "/pnp-cards/pnp03_r0c1_blue-team-blue-7.png",
-  "b001": "/pnp-cards/pnp10_r0c3_president-blue.png",
-  "b030": "/pnp-cards/pnp13_r0c1_red-spy-blue.png",
-  "g008": "/pnp-cards/pnp06_r1c1_gambler-grey.png",
-  "g009": "/pnp-cards/pnp06_r1c2_hot-potato-grey.png",
-  "g019": "/pnp-cards/pnp10_r1c1_private-eye-grey.png",
-  "g026": "/pnp-cards/pnp13_r0c3_target-grey.png",
-  "g028": "/pnp-cards/pnp13_r0c2_survivor-grey.png",
-  "r000": "/pnp-cards/pnp11_r1c3_red-team-red-7.png",
-  "r001": "/pnp-cards/pnp03_r0c3_bomber-red.png",
-  "r004": "/pnp-cards/pnp02_r0c0_angel-red.png",
-  "r014": "/pnp-cards/pnp06_r0c3_engineer-red.png",
-  "r024": "/pnp-cards/pnp13_r1c2_tinkerer-red.png",
-  "r025": "/pnp-cards/pnp10_r0c0_paparazzo-red.png",
-  "r030": "/pnp-cards/pnp13_r0c0_blue-spy-red.png",
-};
+// Derives the client-side card id -> image URL map from the shared art
+// manifest (single source of truth in shared/game/cardArt.ts). The PNGs
+// live in public/pnp-cards/ and are served at /pnp-cards/.
+import { CARD_ART_FILES } from "@shared/game/cardArt";
+
+export const CARD_IMAGE_FILES: Record<string, string> = Object.fromEntries(
+  Object.entries(CARD_ART_FILES).map(([id, file]) => [id, `/pnp-cards/${file}`])
+);
 
 export function cardImageUrl(card: { id: string } | null | undefined): string | null {
   if (!card) return null;

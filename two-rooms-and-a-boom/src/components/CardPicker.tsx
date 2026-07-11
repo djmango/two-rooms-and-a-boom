@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   pickableCards,
   cardFromId,
@@ -17,11 +17,7 @@ const TEAM_LABEL: Record<Team, string> = {
   leader: "Leader",
 };
 
-function byTeam(team: Team): CardDef[] {
-  return PICKABLE.filter((c) => c.team === team).sort((a, b) => a.name.localeCompare(b.name));
-}
-
-const GROUPS = TEAM_ORDER.map((team) => ({ team, cards: byTeam(team) }));
+const byName = (a: CardDef, b: CardDef) => a.name.localeCompare(b.name);
 
 export default function CardPicker({
   selectedIds,
@@ -33,13 +29,26 @@ export default function CardPicker({
   disabled?: boolean;
 }) {
   const selected = useMemo(() => new Set(selectedIds), [selectedIds]);
+  // The most recently toggled card, so we can play a "pop back" animation
+  // on the pool chip that re-enters its team group after being deselected.
+  // (Selection already animates via the picked chip's mount animation.)
+  const [lastDeselect, setLastDeselect] = useState<string | null>(null);
 
   function toggle(id: string) {
     if (disabled) return;
-    onChange(selected.has(id) ? selectedIds.filter((x) => x !== id) : [...selectedIds, id]);
+    if (selected.has(id)) {
+      setLastDeselect(id);
+      onChange(selectedIds.filter((x) => x !== id));
+    } else {
+      onChange([...selectedIds, id]);
+    }
   }
 
   const core = CORE_CARD_IDS.map((id) => cardFromId(id));
+
+  const picked = TEAM_ORDER.flatMap((team) =>
+    PICKABLE.filter((c) => c.team === team && selected.has(c.id)).sort(byName)
+  );
 
   return (
     <div className="card-picker">
@@ -58,19 +67,48 @@ export default function CardPicker({
         </div>
       </div>
 
-      {GROUPS.map((group) => (
-        <div key={group.team} className="card-picker-section">
-          <p className="card-picker-section-label">{TEAM_LABEL[group.team]}</p>
+      {picked.length > 0 && (
+        <div className="card-picker-section card-picker-picked">
+          <p className="card-picker-section-label">Picked for this deck</p>
           <div className="card-picker-chips">
-            {group.cards.map((c) => {
-              const on = selected.has(c.id);
-              return (
+            {picked.map((c, i) => (
+              <button
+                key={`${c.id}-picked`}
+                type="button"
+                className={`card-chip team-${c.team} is-on`}
+                style={{ animationDelay: `${Math.min(i, 6) * 30}ms` }}
+                title={c.ability}
+                aria-pressed={true}
+                disabled={disabled}
+                onClick={() => toggle(c.id)}
+              >
+                {cardImageUrl(c) && (
+                  <img className="card-chip-thumb" src={cardImageUrl(c)!} alt="" aria-hidden="true" />
+                )}
+                <span className="card-chip-name">{c.name}</span>
+                <span className="card-chip-tag">in · tap to remove</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {TEAM_ORDER.map((team) => {
+        const pool = PICKABLE.filter((c) => c.team === team && !selected.has(c.id)).sort(byName);
+        if (pool.length === 0) return null;
+        return (
+          <div key={team} className="card-picker-section">
+            <p className="card-picker-section-label">{TEAM_LABEL[team]}</p>
+            <div className="card-picker-chips">
+              {pool.map((c) => (
                 <button
-                  key={c.id}
+                  key={`${c.id}-pool`}
                   type="button"
-                  className={`card-chip team-${c.team}${on ? " is-on" : ""}`}
+                  className={`card-chip team-${c.team}${
+                    lastDeselect === c.id ? " is-returning" : ""
+                  }`}
                   title={c.ability}
-                  aria-pressed={on}
+                  aria-pressed={false}
                   disabled={disabled}
                   onClick={() => toggle(c.id)}
                 >
@@ -78,13 +116,13 @@ export default function CardPicker({
                     <img className="card-chip-thumb" src={cardImageUrl(c)!} alt="" aria-hidden="true" />
                   )}
                   <span className="card-chip-name">{c.name}</span>
-                  <span className="card-chip-tag">{on ? "in" : c.short}</span>
+                  <span className="card-chip-tag">{c.short}</span>
                 </button>
-              );
-            })}
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       <p className="card-picker-summary">
         {selectedIds.length} role{selectedIds.length === 1 ? "" : "s"} picked. Mix any combination

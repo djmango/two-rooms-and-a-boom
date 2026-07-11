@@ -1,5 +1,6 @@
 import data from "./catalog-data.json";
 import type { CardDef, PlaysetDef, Team } from "./types";
+import { CARD_ART_ID_SET } from "./cardArt";
 
 const CATALOG = data.CATALOG as Record<string, CardDef>;
 export const PLAYSETS = data.PLAYSETS as PlaysetDef[];
@@ -29,8 +30,9 @@ export function getPlayset(id: string): PlaysetDef {
 // Cards the host can toggle on/off in a "Custom mix" deck. The core
 // (President, Bomber) is always included and the basic team filler cards
 // fill whatever slots are left over, so neither is pickable. Everything
-// else -- including the Gambler (g008) -- is pickable in any amount; a
-// custom mix has no balance/parity validation.
+// else is pickable in any amount -- but only roles we have PnP artwork
+// for, so every chip in the picker shows a picture. A custom mix has no
+// balance/parity validation.
 export const CORE_CARD_IDS = ["b001", "r001"] as const;
 export const ODD_CARD_ID = "g008";
 export const TEAM_FILLER_IDS = ["b000", "r000"] as const;
@@ -40,7 +42,7 @@ export function pickableCards(): CardDef[] {
   return Object.values(CATALOG).filter((c) => {
     if (CORE_CARD_IDS.includes(c.id as (typeof CORE_CARD_IDS)[number])) return false;
     if (TEAM_FILLER_IDS.includes(c.id as (typeof TEAM_FILLER_IDS)[number])) return false;
-    return true;
+    return CARD_ART_ID_SET.has(c.id);
   });
 }
 
@@ -246,6 +248,9 @@ function buildCustomMixDeck(
       TEAM_FILLER_IDS.includes(id as (typeof TEAM_FILLER_IDS)[number])
     ) {
       throw new Error(`Card ${id} can't be picked in a custom mix; it's auto-included.`);
+    }
+    if (!CARD_ART_ID_SET.has(id)) {
+      throw new Error(`Card ${id} isn't pickable in a custom mix.`);
     }
     specials.push(cardFromId(id));
   }

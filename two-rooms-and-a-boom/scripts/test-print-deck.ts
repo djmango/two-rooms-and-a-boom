@@ -170,16 +170,16 @@ assert(
 // auto core/filler) are what gets dealt.
 {
   const mix = getPlayset("custom-mix");
-  const picked = ["b014", "r014", "g028", "g025"]; // Doctor, Engineer, Survivor, Victim
+  const picked = ["r014", "g028", "g019", "r025"]; // Engineer, Survivor, Private Eye, Paparazzo (all have PnP art)
   try {
     const { cards } = buildDeck(10, mix, picked);
     assert(cards.length === 10, `custom-mix 10 size=${cards.length}`);
     assert(cards.some((c) => c.name === "President"), "custom-mix always has President");
     assert(cards.some((c) => c.name === "Bomber"), "custom-mix always has Bomber");
-    assert(cards.some((c) => c.name === "Doctor"), "custom-mix has picked Doctor");
     assert(cards.some((c) => c.name === "Engineer"), "custom-mix has picked Engineer");
     assert(cards.some((c) => c.name === "Survivor"), "custom-mix has picked Survivor");
-    assert(cards.some((c) => c.name === "Victim"), "custom-mix has picked Victim");
+    assert(cards.some((c) => c.name === "Private Eye"), "custom-mix has picked Private Eye");
+    assert(cards.some((c) => c.name === "Paparazzo"), "custom-mix has picked Paparazzo");
     // No unpicked advanced/grey roles leaked in.
     const names = cards.map((c) => c.name);
     assert(!names.includes("Agent"), "custom-mix doesn't include unpicked Agent");
@@ -202,15 +202,15 @@ assert(
   // Picking way more roles than there are players is the one unavoidable
   // limit (you can't deal more unique cards than players).
   try {
-    buildDeck(4, mix, ["b014", "r014", "g028", "g025", "g008"]);
+    buildDeck(4, mix, ["r014", "g028", "g019", "r025", "g008"]);
     assert(false, "custom-mix overload (5 specials in a 4p game) should be rejected");
   } catch {
     assert(true, "custom-mix overload rejected");
   }
 
-  // Picking a core card or a team-filler must be rejected; the Gambler
-  // (g008) is now pickable in a custom mix, so picking it should succeed.
-  for (const bad of ["b001", "r001", "b000", "r000"]) {
+  // Picking a core card, a team-filler, or a role with no PnP art must be
+  // rejected. The Gambler (g008) is pickable, so picking it succeeds.
+  for (const bad of ["b001", "r001", "b000", "r000", "g024"]) {
     try {
       buildDeck(10, mix, [bad]);
       assert(false, `custom-mix should reject picking ${bad}`);
