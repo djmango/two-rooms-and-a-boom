@@ -37,12 +37,20 @@ export function getPlayset(id: string): PlaysetDef {
 // A few art-having roles are still held out of the custom mix because
 // they only make sense inside their dedicated preset (e.g. the Engineer's
 // card-share win condition needs the Bomber side of the table to be set
-// up by the playset, not a free-for-all custom deck).
+// up by the playset, not a free-for-all custom deck). The same goes for
+// the Private Eye (mystery/bury preset), the Tinkerer (Doctor/Engineer
+// backup pack), and the Paparazzo (love-hate preset) -- each is tuned
+// for the playset that ships it.
 export const CORE_CARD_IDS = ["b001", "r001"] as const;
 export const ODD_CARD_ID = "g008";
 export const TEAM_FILLER_IDS = ["b000", "r000"] as const;
 export const HOT_POTATO_ID = "g009";
-export const CUSTOM_MIX_EXCLUDED_IDS: ReadonlySet<string> = new Set(["r014"]);
+export const CUSTOM_MIX_EXCLUDED_IDS: ReadonlySet<string> = new Set([
+  "r014", // Engineer
+  "g019", // Private Eye
+  "r024", // Tinkerer
+  "r025", // Paparazzo
+]);
 
 export function pickableCards(): CardDef[] {
   return Object.values(CATALOG).filter((c) => {
