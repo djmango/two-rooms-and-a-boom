@@ -189,24 +189,40 @@ assert(
     assert(false, `custom-mix 10: ${(e as Error).message}`);
   }
 
-  // Odd count should auto-add the Gambler even when nothing grey was picked.
+  // Custom mix has no balance/parity validation: an empty pick with an odd
+  // player count should just work, filling the rest with plain team members.
   try {
     const { cards } = buildDeck(7, mix, []);
-    const names = cards.map((c) => c.name);
     assert(cards.length === 7, `custom-mix empty 7 size=${cards.length}`);
-    assert(names.includes("Gambler"), "custom-mix empty 7 auto-adds Gambler for odd count");
+    assert(!cards.some((c) => c.name === "Gambler"), "custom-mix empty 7 has no auto Gambler");
   } catch (e) {
     assert(false, `custom-mix empty 7: ${(e as Error).message}`);
   }
 
-  // Picking a core card or the gambler must be rejected.
-  for (const bad of ["b001", "r001", "g008", "b000", "r000"]) {
+  // Picking way more roles than there are players is the one unavoidable
+  // limit (you can't deal more unique cards than players).
+  try {
+    buildDeck(4, mix, ["b014", "r014", "g028", "g025", "g008"]);
+    assert(false, "custom-mix overload (5 specials in a 4p game) should be rejected");
+  } catch {
+    assert(true, "custom-mix overload rejected");
+  }
+
+  // Picking a core card or a team-filler must be rejected; the Gambler
+  // (g008) is now pickable in a custom mix, so picking it should succeed.
+  for (const bad of ["b001", "r001", "b000", "r000"]) {
     try {
       buildDeck(10, mix, [bad]);
       assert(false, `custom-mix should reject picking ${bad}`);
     } catch {
       assert(true, `custom-mix rejects picking ${bad}`);
     }
+  }
+  try {
+    const { cards } = buildDeck(7, mix, ["g008"]);
+    assert(cards.some((c) => c.name === "Gambler"), "custom-mix lets the host pick the Gambler");
+  } catch (e) {
+    assert(false, `custom-mix picking Gambler: ${(e as Error).message}`);
   }
 }
 
