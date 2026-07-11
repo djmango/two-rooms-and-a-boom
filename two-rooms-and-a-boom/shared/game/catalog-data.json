@@ -411,6 +411,21 @@
       "oddCard": "g008"
     },
     {
+      "id": "classic-spy",
+      "name": "Classic + Spy",
+      "emoji": "🥸",
+      "blurb": "President, Bomber, team cards, and a Spy per team whose card color doesn't match their true team.",
+      "players": [
+        11,
+        30
+      ],
+      "cardIds": [
+        "b030",
+        "r030"
+      ],
+      "oddCard": "g008"
+    },
+    {
       "id": "instant-death",
       "name": "Instant Death",
       "emoji": "☠️",
