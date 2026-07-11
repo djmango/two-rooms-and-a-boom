@@ -233,6 +233,7 @@ export default function GamePage() {
                     <CardPicker
                       selectedIds={state.customCardIds ?? []}
                       disabled={!isHost}
+                      playerCount={Math.max(4, state.players.length)}
                       onChange={(cardIds) =>
                         send({
                           type: "set_playset",

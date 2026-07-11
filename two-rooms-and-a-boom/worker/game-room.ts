@@ -335,8 +335,12 @@ export class GameRoom extends DurableObject<Env> {
           state.playsetId = msg.playsetId;
           state.playerCountTarget = clamp(Number(msg.playerCount) || state.playerCountTarget, 4, MAX_PLAYERS);
           if (msg.playsetId === "custom-mix") {
-            const ids = [...new Set(msg.cardIds ?? [])];
+            // Plain team members (b000/r000) may appear any number of times
+            // (the host adds them via steppers); don't dedupe them. Specials
+            // must be pickable, and duplicates are collapsed by the builder.
+            const ids = msg.cardIds ?? [];
             for (const id of ids) {
+              if (id === "b000" || id === "r000") continue;
               if (!PICKABLE_CARD_IDS.has(id)) {
                 throw new Error(`Card ${id} isn't pickable in a custom mix.`);
               }

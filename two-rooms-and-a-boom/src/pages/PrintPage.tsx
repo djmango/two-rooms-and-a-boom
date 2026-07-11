@@ -192,7 +192,11 @@ export default function PrintPage() {
           {playsetId === "custom-mix" && (
             <fieldset className="field pack">
               <legend>Custom mix · pick the cards</legend>
-              <CardPicker selectedIds={customCardIds} onChange={setCustomCardIds} />
+              <CardPicker
+                selectedIds={customCardIds}
+                onChange={setCustomCardIds}
+                playerCount={playset.fixedPlayers ?? players}
+              />
             </fieldset>
           )}
 

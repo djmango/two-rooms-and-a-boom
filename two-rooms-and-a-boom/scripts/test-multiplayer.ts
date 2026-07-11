@@ -695,6 +695,17 @@ async function testCustomMix() {
     assert(/isn.t pickable/i.test(excludedErr.message || ""), `custom-mix rejects ${excluded}: ${excludedErr.message}`);
   }
 
+  // Plain team members (b000/r000) are allowed in any count -- the host
+  // adds them via steppers, so duplicates are preserved by the server.
+  host.send({ type: "set_playset", playsetId: "custom-mix", playerCount: 10, cardIds: ["b000", "b000", "r000"] });
+  const teamOk = await host.wait(
+    (m) => m.type === "state" && m.state?.playsetId === "custom-mix" && m.state?.customCardIds?.length === 3
+  );
+  assert(
+    JSON.stringify(teamOk.state.customCardIds) === JSON.stringify(["b000", "b000", "r000"]),
+    `custom-mix accepts plain team member counts (got ${JSON.stringify(teamOk.state.customCardIds)})`
+  );
+
   // Valid pick: Angel, Survivor, Red Spy, Blue Spy (all roles we have
   // PnP art for and none excluded from the custom mix).
   const picked = ["r004", "g028", "b030", "r030"];

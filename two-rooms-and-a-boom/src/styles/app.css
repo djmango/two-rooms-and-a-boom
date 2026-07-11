@@ -1485,6 +1485,66 @@ main {
   opacity: 0.85;
 }
 
+/* Plain team member chips use a +/- stepper instead of a toggle, since the
+   host can add any number of them. */
+.card-chip.team-member {
+  cursor: default;
+}
+.card-chip.team-member.is-on {
+  background: var(--panel);
+  border-color: var(--gold);
+}
+.card-chip.team-member.is-on.team-blue {
+  background: rgba(10, 132, 255, 0.18);
+}
+.card-chip.team-member.is-on.team-red {
+  background: rgba(255, 69, 58, 0.18);
+}
+
+.card-chip-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.3rem;
+  width: 100%;
+}
+
+.stepper-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-2);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  flex: none;
+  transition: background 0.12s var(--ease), border-color 0.12s var(--ease);
+}
+.stepper-btn:hover:not(:disabled) {
+  background: var(--panel);
+  border-color: var(--gold);
+}
+.stepper-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.card-chip-count {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  font-weight: 700;
+  min-width: 1.4em;
+  text-align: center;
+}
+
+.card-picker-summary.is-over {
+  color: var(--red);
+  font-weight: 700;
+}
+
 /* Selected chips float to a "Picked" section at the top and pop in; tapping
    one pops it back down into its team group. */
 .card-picker-picked {

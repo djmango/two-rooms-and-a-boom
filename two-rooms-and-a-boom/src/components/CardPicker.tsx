@@ -3,6 +3,7 @@ import {
   pickableCards,
   cardFromId,
   CORE_CARD_IDS,
+  TEAM_FILLER_IDS,
 } from "@shared/game/deck";
 import { cardImageUrl } from "@/lib/cardImages";
 import type { CardDef, Team } from "@shared/game/types";
@@ -19,19 +20,37 @@ const TEAM_LABEL: Record<Team, string> = {
 
 const byName = (a: CardDef, b: CardDef) => a.name.localeCompare(b.name);
 
+const TEAM_MEMBER_IDS = TEAM_FILLER_IDS as readonly string[];
+
 export default function CardPicker({
   selectedIds,
   onChange,
   disabled,
+  playerCount,
 }: {
   selectedIds: string[];
   onChange: (ids: string[]) => void;
   disabled?: boolean;
+  playerCount?: number;
 }) {
-  const selected = useMemo(() => new Set(selectedIds), [selectedIds]);
-  // The most recently toggled card, so we can play a "pop back" animation
+  // Plain team members (b000/r000) may appear multiple times (the host adds
+  // them via steppers); specials are single toggles.
+  const specialIds = useMemo(
+    () => selectedIds.filter((id) => !TEAM_MEMBER_IDS.includes(id)),
+    [selectedIds]
+  );
+  const selected = useMemo(() => new Set(specialIds), [specialIds]);
+  const blueCount = useMemo(
+    () => selectedIds.filter((id) => id === "b000").length,
+    [selectedIds]
+  );
+  const redCount = useMemo(
+    () => selectedIds.filter((id) => id === "r000").length,
+    [selectedIds]
+  );
+
+  // The most recently toggled special, so we can play a "pop back" animation
   // on the pool chip that re-enters its team group after being deselected.
-  // (Selection already animates via the picked chip's mount animation.)
   const [lastDeselect, setLastDeselect] = useState<string | null>(null);
 
   function toggle(id: string) {
@@ -44,11 +63,26 @@ export default function CardPicker({
     }
   }
 
+  function setTeamCount(id: "b000" | "r000", count: number) {
+    if (disabled) return;
+    const others = selectedIds.filter((x) => x !== id);
+    const next = [...others, ...Array.from({ length: count }, () => id)];
+    onChange(next);
+  }
+
   const core = CORE_CARD_IDS.map((id) => cardFromId(id));
+  const teamMembers = TEAM_MEMBER_IDS.map((id) => cardFromId(id));
 
   const picked = TEAM_ORDER.flatMap((team) =>
     PICKABLE.filter((c) => c.team === team && selected.has(c.id)).sort(byName)
   );
+
+  // Deck accounting: core (President + Bomber) + specials + plain team
+  // members the host added. The builder pads any remainder automatically.
+  const coreCount = CORE_CARD_IDS.length;
+  const usedSlots = coreCount + specialIds.length + blueCount + redCount;
+  const remaining = playerCount ? playerCount - usedSlots : null;
+  const over = remaining != null && remaining < 0;
 
   return (
     <div className="card-picker">
@@ -64,6 +98,50 @@ export default function CardPicker({
               <span className="card-chip-tag">core</span>
             </span>
           ))}
+        </div>
+      </div>
+
+      <div className="card-picker-section">
+        <p className="card-picker-section-label">Plain team members</p>
+        <div className="card-picker-chips">
+          {teamMembers.map((c) => {
+            const count = c.id === "b000" ? blueCount : redCount;
+            const canDec = count > 0 && !disabled;
+            const canInc = !disabled && (remaining == null || remaining > 0);
+            return (
+              <div
+                key={c.id}
+                className={`card-chip team-${c.team} team-member${count > 0 ? " is-on" : ""}`}
+                title={c.ability}
+              >
+                {cardImageUrl(c) && (
+                  <img className="card-chip-thumb" src={cardImageUrl(c)!} alt="" aria-hidden="true" />
+                )}
+                <span className="card-chip-name">{c.name}</span>
+                <div className="card-chip-stepper">
+                  <button
+                    type="button"
+                    className="stepper-btn"
+                    onClick={() => setTeamCount(c.id as "b000" | "r000", count - 1)}
+                    disabled={!canDec}
+                    aria-label={`Remove a ${c.name} member`}
+                  >
+                    −
+                  </button>
+                  <span className="card-chip-count">{count}</span>
+                  <button
+                    type="button"
+                    className="stepper-btn"
+                    onClick={() => setTeamCount(c.id as "b000" | "r000", count + 1)}
+                    disabled={!canInc}
+                    aria-label={`Add a ${c.name} member`}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -124,9 +202,11 @@ export default function CardPicker({
         );
       })}
 
-      <p className="card-picker-summary">
-        {selectedIds.length} role{selectedIds.length === 1 ? "" : "s"} picked. Mix any combination
-        you want; remaining slots are filled automatically with plain Blue/Red team members.
+      <p className={`card-picker-summary${over ? " is-over" : ""}`}>
+        {specialIds.length + blueCount + redCount} pick{specialIds.length + blueCount + redCount === 1 ? "" : "s"} so far
+        {playerCount ? ` · deck ${usedSlots}/${playerCount}` : ""}. Mix any combination you want;
+        any empty slots are filled automatically with plain Blue/Red team members.
+        {over && <> (too many for {playerCount} players, remove some).</>}
       </p>
     </div>
   );
