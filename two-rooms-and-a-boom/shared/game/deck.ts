@@ -33,15 +33,30 @@ export function getPlayset(id: string): PlaysetDef {
 // else is pickable in any amount -- but only roles we have PnP artwork
 // for, so every chip in the picker shows a picture. A custom mix has no
 // balance/parity validation.
+//
+// A few art-having roles are still held out of the custom mix because
+// they only make sense inside their dedicated preset (e.g. the Engineer's
+// card-share win condition needs the Bomber side of the table to be set
+// up by the playset, not a free-for-all custom deck). The same goes for
+// the Private Eye (mystery/bury preset), the Tinkerer (Doctor/Engineer
+// backup pack), and the Paparazzo (love-hate preset) -- each is tuned
+// for the playset that ships it.
 export const CORE_CARD_IDS = ["b001", "r001"] as const;
 export const ODD_CARD_ID = "g008";
 export const TEAM_FILLER_IDS = ["b000", "r000"] as const;
 export const HOT_POTATO_ID = "g009";
+export const CUSTOM_MIX_EXCLUDED_IDS: ReadonlySet<string> = new Set([
+  "r014", // Engineer
+  "g019", // Private Eye
+  "r024", // Tinkerer
+  "r025", // Paparazzo
+]);
 
 export function pickableCards(): CardDef[] {
   return Object.values(CATALOG).filter((c) => {
     if (CORE_CARD_IDS.includes(c.id as (typeof CORE_CARD_IDS)[number])) return false;
     if (TEAM_FILLER_IDS.includes(c.id as (typeof TEAM_FILLER_IDS)[number])) return false;
+    if (CUSTOM_MIX_EXCLUDED_IDS.has(c.id)) return false;
     return CARD_ART_ID_SET.has(c.id);
   });
 }
@@ -249,7 +264,7 @@ function buildCustomMixDeck(
     ) {
       throw new Error(`Card ${id} can't be picked in a custom mix; it's auto-included.`);
     }
-    if (!CARD_ART_ID_SET.has(id)) {
+    if (!CARD_ART_ID_SET.has(id) || CUSTOM_MIX_EXCLUDED_IDS.has(id)) {
       throw new Error(`Card ${id} isn't pickable in a custom mix.`);
     }
     specials.push(cardFromId(id));
