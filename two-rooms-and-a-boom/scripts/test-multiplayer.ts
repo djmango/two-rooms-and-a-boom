@@ -385,6 +385,7 @@ async function main() {
   guests.forEach((g) => g.close());
 
   await testTestMode();
+  await testClassicSpyPlayset();
 
   console.log(failed ? `\n${failed} MULTIPLAYER FAILURES` : "\nALL MULTIPLAYER TESTS PASSED");
   process.exit(failed ? 1 : 0);
@@ -475,6 +476,59 @@ async function testTestMode() {
   host3.close();
   guest.close();
   guest2.close();
+}
+
+async function testClassicSpyPlayset() {
+  // The "Classic + Spy" playset needs 11+ players (color-sharing pack), so
+  // exercise it with a real host + 10 guests rather than the fixed 6-player
+  // test-mode bots.
+  const createRes = await fetch(`${BASE}/api/rooms`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ hostName: "SpyHost", playsetId: "basic", playerCount: 11 }),
+  });
+  const created = await createRes.json();
+  const host = new Client();
+  await host.connect(created.code);
+  host.send({ type: "hello", name: "SpyHost", playerId: created.playerId, secret: created.secret });
+  await host.wait((m) => m.type === "welcome");
+
+  host.send({ type: "set_playset", playsetId: "classic-spy", playerCount: 11 });
+  const psUpdate = await host.wait((m) => m.type === "state" && m.state?.playsetId === "classic-spy");
+  assert(psUpdate.state.playsetName === "Classic + Spy", "classic-spy playset selectable");
+
+  const guests: Client[] = [];
+  for (let i = 0; i < 10; i++) {
+    const g = new Client();
+    await g.connect(created.code);
+    g.send({ type: "hello", name: `SpyGuest${i}` });
+    await g.wait((m) => m.type === "welcome");
+    guests.push(g);
+  }
+  let players = 1;
+  while (players < 11) {
+    const upd = await host.wait((m) => m.type === "state");
+    players = upd.state.players.length;
+  }
+  assert(players === 11, `classic-spy room reached 11 players (got ${players})`);
+
+  host.send({ type: "start" });
+  const started = await host.wait((m) => m.type === "state" && m.state?.phase === "playing");
+  assert(started.state.phase === "playing", "classic-spy game starts at 11 players");
+
+  const privateCards = [started.state.you.card?.name as string];
+  for (const g of guests) {
+    const st = await g.wait((m) => m.type === "state" && m.state?.phase === "playing" && m.state?.you?.card);
+    privateCards.push(st.state.you.card.name);
+  }
+  assert(privateCards.length === 11, `11 private cards dealt (got ${privateCards.length})`);
+  assert(privateCards.includes("President"), `deck has President among ${privateCards.join(",")}`);
+  assert(privateCards.includes("Bomber"), `deck has Bomber among ${privateCards.join(",")}`);
+  assert(privateCards.includes("Blue Spy"), `deck has Blue Spy among ${privateCards.join(",")}`);
+  assert(privateCards.includes("Red Spy"), `deck has Red Spy among ${privateCards.join(",")}`);
+
+  host.close();
+  guests.forEach((g) => g.close());
 }
 
 main().catch((e) => {
