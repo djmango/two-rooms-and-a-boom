@@ -158,20 +158,45 @@ async function main() {
     Eli: guests[4]!,
   };
 
-  const leaderA = started.state.players.find((p: any) => p.room === "A" && p.isLeader);
-  const leaderB = started.state.players.find((p: any) => p.room === "B" && p.isLeader);
+  // Leadership is room-local: a viewer only ever sees their own room's
+  // leader, so we ask a representative member of each room what THEY see,
+  // rather than reading isLeader off a single (host) viewpoint.
+  const hostRoom = started.state.you.room as "A" | "B";
+  const otherRoom = hostRoom === "A" ? "B" : "A";
+
+  const otherRoomMemberNames = started.state.players
+    .filter((p: any) => p.room === otherRoom)
+    .map((p: any) => p.name);
+  const otherRepName = otherRoomMemberNames.find((n: string) => n !== "Alex") ?? otherRoomMemberNames[0]!;
+  const otherRepClient = nameToClient[otherRepName]!;
+  const otherRepState = (
+    await otherRepClient.wait((m) => m.type === "state" && m.state?.phase === "playing")
+  ).state;
+
+  const hostRoomLeader = started.state.players.find((p: any) => p.room === hostRoom && p.isLeader);
+  const otherRoomLeader = otherRepState.players.find((p: any) => p.room === otherRoom && p.isLeader);
+  const leaderA = hostRoom === "A" ? hostRoomLeader : otherRoomLeader;
+  const leaderB = hostRoom === "B" ? hostRoomLeader : otherRoomLeader;
   assert(!!leaderA && !!leaderB, `each room has a leader (A=${leaderA?.name}, B=${leaderB?.name})`);
   assert(
-    started.state.players.filter((p: any) => p.room === "A" && p.isLeader).length === 1,
-    "exactly one leader in room A"
+    started.state.players.filter((p: any) => p.room === hostRoom && p.isLeader).length === 1,
+    "exactly one leader in the host's own room, from the host's view"
   );
   assert(
-    started.state.players.filter((p: any) => p.room === "B" && p.isLeader).length === 1,
-    "exactly one leader in room B"
+    otherRepState.players.filter((p: any) => p.room === otherRoom && p.isLeader).length === 1,
+    "exactly one leader in the other room, from that room's own view"
   );
   assert(
-    started.state.rooms?.A?.leaderId === leaderA.id && started.state.rooms?.B?.leaderId === leaderB.id,
-    "rooms.leaderId matches players' isLeader flags"
+    started.state.rooms?.[hostRoom]?.leaderId === hostRoomLeader.id,
+    "rooms.<hostRoom>.leaderId matches the host's own leader"
+  );
+  assert(
+    started.state.rooms?.[otherRoom]?.leaderId === null,
+    "the other room's leaderId is redacted from the host's view (no cross-room leader share)"
+  );
+  assert(
+    !started.state.players.some((p: any) => p.room === otherRoom && p.isLeader),
+    "no player in the other room shows isLeader=true from the host's view"
   );
 
   const leaderAClient = nameToClient[leaderA.name]!;

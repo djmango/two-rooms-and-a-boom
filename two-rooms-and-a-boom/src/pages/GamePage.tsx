@@ -101,18 +101,20 @@ export default function GamePage() {
               {code}
             </button>
             {copied && <span className="copy-toast">Copied</span>}
-            <button
-              type="button"
-              className="btn secondary share-btn"
-              onClick={() => setShareOpen((v) => !v)}
-              aria-expanded={shareOpen}
-            >
-              {shareOpen ? "Hide share" : "Share"}
-            </button>
+            {isLobby && (
+              <button
+                type="button"
+                className="btn secondary share-btn"
+                onClick={() => setShareOpen((v) => !v)}
+                aria-expanded={shareOpen}
+              >
+                {shareOpen ? "Hide share" : "Share"}
+              </button>
+            )}
           </div>
         </header>
 
-        {shareOpen && (
+        {isLobby && shareOpen && (
           <div className="share-panel" role="dialog" aria-label="Share room">
             <div className="share-panel-head">
               <h2>Invite players</h2>
