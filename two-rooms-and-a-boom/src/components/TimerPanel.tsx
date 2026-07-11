@@ -14,6 +14,7 @@ export default function TimerPanel({
   onEndRound,
   onReshuffle,
   onRevealAll,
+  onRoundEnd,
 }: {
   round: RoundInfo | null;
   clockSkew: number;
@@ -23,6 +24,7 @@ export default function TimerPanel({
   onEndRound: () => void;
   onReshuffle: () => void;
   onRevealAll: () => void;
+  onRoundEnd?: () => void;
 }) {
   const [remainingMs, setRemainingMs] = useState<number | null>(null);
   const alarmedEndsAt = useRef<number | null>(null);
@@ -46,11 +48,13 @@ export default function TimerPanel({
         if (alarmedEndsAt.current !== round.endsAt) {
           alarmedEndsAt.current = round.endsAt;
           playRoundEndAlarm();
+          onRoundEnd?.();
         }
       }
     };
     tick();
     return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [round, clockSkew]);
 
   const totalMs = (round?.minutes ?? 1) * 60 * 1000;

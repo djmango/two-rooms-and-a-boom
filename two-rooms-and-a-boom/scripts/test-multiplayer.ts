@@ -186,10 +186,21 @@ async function main() {
   );
 
   leaderAClient.send({ type: "select_hostages", playerIds: [leaderA.id] });
-  const selfHostage = await leaderAClient.wait((m) => m.type === "error");
+  const noSuccessor = await leaderAClient.wait((m) => m.type === "error");
   assert(
-    /leader can.t be a hostage/i.test(selfHostage.message || ""),
-    `leader can't select self as hostage: ${selfHostage.message}`
+    /pick who takes over as leader/i.test(noSuccessor.message || ""),
+    `abdicating without a successor is rejected: ${noSuccessor.message}`
+  );
+
+  leaderAClient.send({
+    type: "select_hostages",
+    playerIds: [leaderA.id],
+    newLeaderId: leaderA.id,
+  });
+  const selfSuccessor = await leaderAClient.wait((m) => m.type === "error");
+  assert(
+    /new leader can.t be the outgoing leader/i.test(selfSuccessor.message || ""),
+    `successor can't be the outgoing leader: ${selfSuccessor.message}`
   );
 
   leaderAClient.send({ type: "select_hostages", playerIds: [roommateA.id] });
@@ -385,6 +396,7 @@ async function main() {
   guests.forEach((g) => g.close());
 
   await testTestMode();
+  await testLeaderAbdication();
 
   console.log(failed ? `\n${failed} MULTIPLAYER FAILURES` : "\nALL MULTIPLAYER TESTS PASSED");
   process.exit(failed ? 1 : 0);
@@ -475,6 +487,94 @@ async function testTestMode() {
   host3.close();
   guest.close();
   guest2.close();
+}
+
+async function testLeaderAbdication() {
+  // A leader can pick themselves as a hostage (stepping down), but only if
+  // they also hand leadership to someone staying behind.
+  const createRes = await fetch(`${BASE}/api/rooms`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ hostName: "AbdicateHost", playsetId: "basic", playerCount: 10 }),
+  });
+  const created = await createRes.json();
+  const host = new Client();
+  await host.connect(created.code);
+  host.send({
+    type: "hello",
+    name: "AbdicateHost",
+    playerId: created.playerId,
+    secret: created.secret,
+  });
+  await host.wait((m) => m.type === "welcome");
+
+  const guests: Client[] = [];
+  for (const name of ["AbA", "AbB", "AbC", "AbD", "AbE"]) {
+    const g = new Client();
+    await g.connect(created.code);
+    g.send({ type: "hello", name });
+    await g.wait((m) => m.type === "welcome");
+    guests.push(g);
+  }
+  let players = 1;
+  while (players < 6) {
+    const upd = await host.wait((m) => m.type === "state");
+    players = upd.state.players.length;
+  }
+
+  host.send({ type: "start" });
+  const allClients = [host, ...guests];
+  const states: any[] = [];
+  for (const c of allClients) {
+    const st = await c.wait((m) => m.type === "state" && m.state?.phase === "playing");
+    states.push(st.state);
+  }
+
+  const room = "A" as const;
+  const leaderIdx = states.findIndex((s) => s.you.room === room && s.you.isLeader);
+  assert(leaderIdx >= 0, "found room A's leader among the real clients");
+  const leaderClient = allClients[leaderIdx]!;
+  const leaderState = states[leaderIdx]!;
+
+  const roomMembers = leaderState.players.filter((p: any) => p.room === room);
+  assert(roomMembers.length >= 2, `room A has enough members to abdicate (${roomMembers.length})`);
+  const successor = roomMembers.find((p: any) => p.id !== leaderState.you.id);
+
+  leaderClient.send({
+    type: "select_hostages",
+    playerIds: [leaderState.you.id],
+    newLeaderId: successor.id,
+  });
+  const abdicated = await leaderClient.wait(
+    (m) => m.type === "state" && m.state?.rooms?.[room]?.leaderId === successor.id
+  );
+  assert(
+    abdicated.state.rooms[room].leaderId === successor.id,
+    "leadership transferred to the chosen successor"
+  );
+  assert(abdicated.state.you.isLeader === false, "outgoing leader's isLeader flag is cleared");
+  assert(
+    abdicated.state.rooms[room].hostageIds.includes(leaderState.you.id),
+    "outgoing leader is recorded as a hostage"
+  );
+  assert(
+    abdicated.state.players.find((p: any) => p.id === successor.id)?.isLeader === true,
+    "successor's isLeader flag is set"
+  );
+
+  host.send({ type: "start_round" });
+  await host.wait((m) => m.type === "state" && m.state.round?.endsAt);
+  host.send({ type: "end_round" });
+  const exchanged = await leaderClient.wait(
+    (m) => m.type === "state" && m.state?.round?.index === 1
+  );
+  assert(
+    exchanged.state.you.room !== room,
+    `the former leader was actually exchanged out of room ${room} at end of round`
+  );
+
+  host.close();
+  guests.forEach((g) => g.close());
 }
 
 main().catch((e) => {

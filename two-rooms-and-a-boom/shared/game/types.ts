@@ -88,7 +88,7 @@ export type ClientMessage =
   | { type: "reveal_all" }
   | { type: "kick"; playerId: string }
   | { type: "vote_leader"; targetId: string | null }
-  | { type: "select_hostages"; playerIds: string[] }
+  | { type: "select_hostages"; playerIds: string[]; newLeaderId?: string | null }
   | { type: "ping" };
 
 export type ServerMessage =
