@@ -34,6 +34,7 @@ export function getPlayset(id: string): PlaysetDef {
 export const CORE_CARD_IDS = ["b001", "r001"] as const;
 export const ODD_CARD_ID = "g008";
 export const TEAM_FILLER_IDS = ["b000", "r000"] as const;
+export const HOT_POTATO_ID = "g009";
 
 export function pickableCards(): CardDef[] {
   return Object.values(CATALOG).filter((c) => {
@@ -41,6 +42,18 @@ export function pickableCards(): CardDef[] {
     if (TEAM_FILLER_IDS.includes(c.id as (typeof TEAM_FILLER_IDS)[number])) return false;
     return true;
   });
+}
+
+// The team/color a card *shows* to others during a color share. Spies
+// (b030/r030) are on the opposite team from their card's color, so a
+// color share reveals the deception color, not the true team -- which is
+// the whole point of the Spy. For every other card, the displayed color
+// is the card's true team.
+export function displayTeam(card: CardDef): Team {
+  const base = card.id.replace(/-\d+$/, "");
+  if (base === "b030") return "blue"; // b030 is "Red Spy": true team red, card looks blue
+  if (base === "r030") return "red"; // r030 is "Blue Spy": true team blue, card looks red
+  return card.team;
 }
 
 export function hostagesFor(players: number): [number, number, number] {

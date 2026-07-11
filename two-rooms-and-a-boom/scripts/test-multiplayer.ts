@@ -424,6 +424,7 @@ async function main() {
   await testClassicSpyPlayset();
   await testCustomMix();
   await testLeaderAbdication();
+  await testCardSharing();
 
   console.log(failed ? `\n${failed} MULTIPLAYER FAILURES` : "\nALL MULTIPLAYER TESTS PASSED");
   process.exit(failed ? 1 : 0);
@@ -733,6 +734,207 @@ async function testCustomMix() {
   assert(!privateCards.includes("Agent"), `custom-mix excludes unpicked Agent`);
   // 10 is even, so no auto Gambler.
   assert(!privateCards.includes("Gambler"), `custom-mix 10 (even) has no auto Gambler`);
+
+  host.close();
+  guests.forEach((g) => g.close());
+}
+
+async function testCardSharing() {
+  // Digital card sharing: both opt in, half = color (team), full = card.
+  // Hot Potato auto-swaps on a completed share. Spies reveal their
+  // deception color on a color share, not their true team.
+  const createRes = await fetch(`${BASE}/api/rooms`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ hostName: "ShareHost", playsetId: "basic", playerCount: 10 }),
+  });
+  const created = await createRes.json();
+  const host = new Client();
+  await host.connect(created.code);
+  host.send({ type: "hello", name: "ShareHost", playerId: created.playerId, secret: created.secret });
+  await host.wait((m) => m.type === "welcome");
+
+  // Custom mix with Hot Potato + Survivor (2 grey balances at 6 players).
+  host.send({ type: "set_playset", playsetId: "custom-mix", playerCount: 6, cardIds: ["g009", "g028"] });
+  await host.wait((m) => m.type === "state" && m.state?.playsetId === "custom-mix");
+
+  const guests: Client[] = [];
+  for (const name of ["SharA", "SharB", "SharC", "SharD", "SharE"]) {
+    const g = new Client();
+    await g.connect(created.code);
+    g.send({ type: "hello", name });
+    await g.wait((m) => m.type === "welcome");
+    guests.push(g);
+  }
+  let players = 1;
+  while (players < 6) {
+    const upd = await host.wait((m) => m.type === "state");
+    players = upd.state.players.length;
+  }
+
+  host.send({ type: "start" });
+  const started = await host.wait((m) => m.type === "state" && m.state?.phase === "playing");
+  assert(started.state.phase === "playing", "share test game starts at 6 players");
+
+  // Collect each guest's playing state, find a real (non-bot) roommate.
+  const guestStates: any[] = [];
+  for (const g of guests) {
+    const st = await g.wait((m) => m.type === "state" && m.state?.phase === "playing" && m.state?.you?.card);
+    guestStates.push({ g, state: st.state });
+  }
+  const myRoom = started.state.you.room;
+  const roommateEntry = guestStates.find((e: any) => e.state.you.room === myRoom);
+  assert(!!roommateEntry, "found a real-guest roommate in the host's room");
+  const roommateGuest = roommateEntry!.g;
+  const roommateId = roommateEntry!.state.you.id;
+
+  // Cross-room share must be rejected.
+  const otherRoom = myRoom === "A" ? "B" : "A";
+  const otherRoomPlayer = started.state.players.find((p: any) => p.room === otherRoom);
+  if (otherRoomPlayer) {
+    host.send({ type: "request_share", targetId: otherRoomPlayer.id, level: "half" });
+    const crossErr = await host.wait((m) => m.type === "error");
+    assert(/own room/i.test(crossErr.message || ""), `cross-room share rejected: ${crossErr.message}`);
+  }
+
+  // 1. Full card share, accepted. Both sides should see the other's full card.
+  host.send({ type: "request_share", targetId: roommateId, level: "full" });
+  const prompt = await roommateGuest.wait((m) => m.type === "state" && m.state?.incomingShare);
+  assert(prompt.state.incomingShare.requesterName === "ShareHost", "roommate got the incoming share prompt");
+  assert(prompt.state.incomingShare.level === "full", "incoming share level is full");
+  const hostPending = await host.wait((m) => m.type === "state" && m.state?.outgoingShare);
+  assert(!!hostPending.state.outgoingShare, "host sees the outgoing pending share");
+
+  roommateGuest.send({ type: "respond_share", shareId: prompt.state.incomingShare.id, accept: true });
+  const hostReveal = await host.wait((m) => m.type === "state" && m.state?.revealedToYou?.length > 0);
+  const roommateReveal = await roommateGuest.wait((m) => m.type === "state" && m.state?.revealedToYou?.length > 0);
+  assert(hostReveal.state.revealedToYou.length === 1, `host sees 1 reveal (got ${hostReveal.state.revealedToYou.length})`);
+  assert(roommateReveal.state.revealedToYou.length === 1, `roommate sees 1 reveal (got ${roommateReveal.state.revealedToYou.length})`);
+  assert(hostReveal.state.revealedToYou[0].level === "full", "host reveal is full level");
+  assert(!!hostReveal.state.revealedToYou[0].card, "host reveal includes the full card");
+  assert(roommateReveal.state.revealedToYou[0].peerName === "ShareHost", "roommate reveal peer is host");
+
+  // Hot Potato: if either side held it, cards should have swapped.
+  const hostCardBefore = started.state.you.card?.name;
+  const roommateCardBefore = roommateEntry!.state.you.card?.name;
+  const hostCardAfter = hostReveal.state.you.card?.name;
+  const hotPotatoInvolved = hostCardBefore === "Hot Potato" || roommateCardBefore === "Hot Potato";
+  if (hotPotatoInvolved) {
+    assert(hostCardAfter !== hostCardBefore, "host's card changed (Hot Potato swap)");
+    assert(
+      hostCardAfter === roommateCardBefore,
+      `host now holds roommate's old card (${hostCardAfter} vs ${roommateCardBefore})`
+    );
+  } else {
+    assert(hostCardAfter === hostCardBefore, "no swap when Hot Potato isn't involved");
+  }
+
+  // 2. Decline: no reveal added, outgoing cleared.
+  host.queue.length = 0;
+  roommateGuest.queue.length = 0;
+  host.send({ type: "request_share", targetId: roommateId, level: "half" });
+  const prompt2 = await roommateGuest.wait((m) => m.type === "state" && m.state?.incomingShare?.level === "half");
+  roommateGuest.send({ type: "respond_share", shareId: prompt2.state.incomingShare.id, accept: false });
+  const afterDecline = await host.wait((m) => m.type === "state" && m.state?.outgoingShare === null);
+  assert(afterDecline.state.outgoingShare === null, "decline clears outgoing share");
+  assert(
+    afterDecline.state.revealedToYou.length === hostReveal.state.revealedToYou.length,
+    "decline adds no reveal"
+  );
+
+  // 3. Cancel: requester cancels before a response.
+  host.queue.length = 0;
+  host.send({ type: "request_share", targetId: roommateId, level: "half" });
+  const pending3 = await host.wait((m) => m.type === "state" && m.state?.outgoingShare);
+  host.send({ type: "cancel_share", shareId: pending3.state.outgoingShare.id });
+  const afterCancel = await host.wait((m) => m.type === "state" && m.state?.outgoingShare === null);
+  assert(afterCancel.state.outgoingShare === null, "cancel clears outgoing share");
+  assert(
+    afterCancel.state.revealedToYou.length === hostReveal.state.revealedToYou.length,
+    "cancel adds no reveal"
+  );
+
+  // 4. Spy color deception: a color share reveals displayTeam, not true team.
+  // Re-run with the classic-spy playset at 11 players to get spies in the deck.
+  await testSpyColorDeception();
+
+  host.close();
+  guests.forEach((g) => g.close());
+}
+
+async function testSpyColorDeception() {
+  const createRes = await fetch(`${BASE}/api/rooms`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ hostName: "SpyShareHost", playsetId: "basic", playerCount: 11 }),
+  });
+  const created = await createRes.json();
+  const host = new Client();
+  await host.connect(created.code);
+  host.send({ type: "hello", name: "SpyShareHost", playerId: created.playerId, secret: created.secret });
+  await host.wait((m) => m.type === "welcome");
+  host.send({ type: "set_playset", playsetId: "classic-spy", playerCount: 11 });
+  await host.wait((m) => m.type === "state" && m.state?.playsetId === "classic-spy");
+
+  const guests: Client[] = [];
+  for (let i = 0; i < 10; i++) {
+    const g = new Client();
+    await g.connect(created.code);
+    g.send({ type: "hello", name: `SpyG${i}` });
+    await g.wait((m) => m.type === "welcome");
+    guests.push(g);
+  }
+  let players = 1;
+  while (players < 11) {
+    const upd = await host.wait((m) => m.type === "state");
+    players = upd.state.players.length;
+  }
+  host.send({ type: "start" });
+  const started = await host.wait((m) => m.type === "state" && m.state?.phase === "playing");
+
+  // Collect everyone's card, find a spy and a same-room partner.
+  const allStates: any[] = [{ g: host, state: started.state }];
+  for (const g of guests) {
+    const st = await g.wait((m) => m.type === "state" && m.state?.phase === "playing" && m.state?.you?.card);
+    allStates.push({ g, state: st.state });
+  }
+  const spyEntry = allStates.find((e: any) => e.state.you.card?.name === "Blue Spy" || e.state.you.card?.name === "Red Spy");
+  if (!spyEntry) {
+    // Spies weren't dealt to a real client this run (they may be on the
+    // host's card which we can see, but we need two real clients). Skip
+    // gracefully -- the deck is shuffled, so this is rare but possible.
+    console.log("  (spy color-deception check skipped: no spy dealt to a real client)");
+    host.close(); guests.forEach((g) => g.close());
+    return;
+  }
+  const spyName = spyEntry!.state.you.card?.name;
+  const spyTrueTeam = spyEntry!.state.you.card?.team;
+  const spyRoom = spyEntry!.state.you.room;
+  const partnerEntry = allStates.find((e: any) => e.state.you.room === spyRoom && e !== spyEntry);
+  assert(!!partnerEntry, `found a same-room partner for the ${spyName}`);
+
+  const spyClient = spyEntry!.g;
+  const partnerClient = partnerEntry!.g;
+  const partnerId = partnerEntry!.state.you.id;
+
+  // Spy does a COLOR (half) share with the partner. The partner should see
+  // the spy's DISPLAYED color (opposite of true team), not the true team.
+  spyClient.send({ type: "request_share", targetId: partnerId, level: "half" });
+  const prompt = await partnerClient.wait((m) => m.type === "state" && m.state?.incomingShare);
+  partnerClient.send({ type: "respond_share", shareId: prompt.state.incomingShare.id, accept: true });
+  const partnerReveal = await partnerClient.wait((m) => m.type === "state" && m.state?.revealedToYou?.length > 0);
+  const revealedTeam = partnerReveal.state.revealedToYou[0].team;
+  // Blue Spy (r030) is on Blue team but LOOKS RED; Red Spy (b030) is on Red
+  // team but LOOKS BLUE. A color share reveals the deception color.
+  const expectedDisplay = spyName === "Blue Spy" ? "red" : "blue";
+  assert(
+    revealedTeam === expectedDisplay,
+    `${spyName} (true team ${spyTrueTeam}) color-share reveals ${revealedTeam}, expected ${expectedDisplay} (deception)`
+  );
+  assert(
+    partnerReveal.state.revealedToYou[0].card === null,
+    "color share does not reveal the full card"
+  );
 
   host.close();
   guests.forEach((g) => g.close());

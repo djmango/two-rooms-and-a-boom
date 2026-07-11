@@ -41,6 +41,25 @@ export interface RoomLeaderInfo {
   votes: Record<string, string>;
 }
 
+export type ShareLevel = "half" | "full";
+
+export interface ShareRequest {
+  id: string;
+  requesterId: string;
+  requesterName: string;
+  targetId: string;
+  targetName: string;
+  level: ShareLevel;
+}
+
+export interface RevealedShare {
+  peerId: string;
+  peerName: string;
+  level: ShareLevel;
+  team: Team;
+  card: CardDef | null;
+}
+
 export interface RoundInfo {
   index: number;
   total: number;
@@ -64,6 +83,9 @@ export interface PublicState {
   round: RoundInfo | null;
   buriedPresent: boolean;
   rooms: { A: RoomLeaderInfo; B: RoomLeaderInfo } | null;
+  incomingShare: ShareRequest | null;
+  outgoingShare: ShareRequest | null;
+  revealedToYou: RevealedShare[];
   you: {
     id: string;
     name: string;
@@ -90,6 +112,9 @@ export type ClientMessage =
   | { type: "kick"; playerId: string }
   | { type: "vote_leader"; targetId: string | null }
   | { type: "select_hostages"; playerIds: string[]; newLeaderId?: string | null }
+  | { type: "request_share"; targetId: string; level: ShareLevel }
+  | { type: "respond_share"; shareId: string; accept: boolean }
+  | { type: "cancel_share"; shareId: string }
   | { type: "ping" };
 
 export type ServerMessage =

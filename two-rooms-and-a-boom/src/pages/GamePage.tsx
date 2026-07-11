@@ -6,6 +6,8 @@ import type { PlaysetDef } from "@shared/game/types";
 import PlayerList from "@/components/PlayerList";
 import RoleCard from "@/components/RoleCard";
 import LeaderPanel from "@/components/LeaderPanel";
+import SharePanel from "@/components/SharePanel";
+import SharePromptModal from "@/components/SharePromptModal";
 import HostageModal from "@/components/HostageModal";
 import TimerPanel from "@/components/TimerPanel";
 import CardPicker from "@/components/CardPicker";
@@ -295,6 +297,29 @@ export default function GamePage() {
                       onVote={(targetId) => send({ type: "vote_leader", targetId })}
                       onSelectHostages={(playerIds, newLeaderId) =>
                         send({ type: "select_hostages", playerIds, newLeaderId })
+                      }
+                    />
+                  )}
+
+                  {state.you?.room && (
+                    <SharePanel
+                      players={state.players}
+                      youId={state.you.id}
+                      room={state.you.room}
+                      outgoingShare={state.outgoingShare ?? null}
+                      revealedToYou={state.revealedToYou ?? []}
+                      onRequestShare={(targetId, level) =>
+                        send({ type: "request_share", targetId, level })
+                      }
+                      onCancelShare={(shareId) => send({ type: "cancel_share", shareId })}
+                    />
+                  )}
+
+                  {state.incomingShare && (
+                    <SharePromptModal
+                      share={state.incomingShare}
+                      onRespond={(shareId, accept) =>
+                        send({ type: "respond_share", shareId, accept })
                       }
                     />
                   )}
