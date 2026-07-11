@@ -1,0 +1,770 @@
+[
+  {
+    "file": "pnp02_r0c0_angel-red.png",
+    "sheet": "PnP02",
+    "row": 0,
+    "col": 0,
+    "name": "Angel",
+    "team": "red",
+    "pdf_rect_pt": [
+      35.0,
+      36.0,
+      213.076,
+      299.838
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp02_r0c1_blind-blue.png",
+    "sheet": "PnP02",
+    "row": 0,
+    "col": 1,
+    "name": "Blind",
+    "team": "blue",
+    "pdf_rect_pt": [
+      213.076,
+      36.0,
+      391.153,
+      299.838
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp02_r0c2_blind-red.png",
+    "sheet": "PnP02",
+    "row": 0,
+    "col": 2,
+    "name": "Blind",
+    "team": "red",
+    "pdf_rect_pt": [
+      391.153,
+      36.0,
+      569.229,
+      299.838
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp02_r0c3_blue-team-blue.png",
+    "sheet": "PnP02",
+    "row": 0,
+    "col": 3,
+    "name": "Blue Team",
+    "team": "blue",
+    "pdf_rect_pt": [
+      569.951,
+      36.0,
+      748.027,
+      299.838
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp02_r1c0_blue-team-blue-2.png",
+    "sheet": "PnP02",
+    "row": 1,
+    "col": 0,
+    "name": "Blue Team",
+    "team": "blue",
+    "pdf_rect_pt": [
+      35.723,
+      312.162,
+      213.799,
+      576.0
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp02_r1c1_blue-team-blue-3.png",
+    "sheet": "PnP02",
+    "row": 1,
+    "col": 1,
+    "name": "Blue Team",
+    "team": "blue",
+    "pdf_rect_pt": [
+      214.521,
+      312.162,
+      392.597,
+      576.0
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp02_r1c2_blue-team-blue-4.png",
+    "sheet": "PnP02",
+    "row": 1,
+    "col": 2,
+    "name": "Blue Team",
+    "team": "blue",
+    "pdf_rect_pt": [
+      393.32,
+      312.162,
+      571.396,
+      576.0
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp02_r1c3_blue-team-blue-5.png",
+    "sheet": "PnP02",
+    "row": 1,
+    "col": 3,
+    "name": "Blue Team",
+    "team": "blue",
+    "pdf_rect_pt": [
+      572.119,
+      312.162,
+      750.195,
+      576.0
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp03_r0c0_blue-team-blue-6.png",
+    "sheet": "PnP03",
+    "row": 0,
+    "col": 0,
+    "name": "Blue Team",
+    "team": "blue",
+    "pdf_rect_pt": [
+      35.723,
+      36.0,
+      213.799,
+      299.838
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp03_r0c1_blue-team-blue-7.png",
+    "sheet": "PnP03",
+    "row": 0,
+    "col": 1,
+    "name": "Blue Team",
+    "team": "blue",
+    "pdf_rect_pt": [
+      214.521,
+      36.0,
+      392.598,
+      299.838
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp03_r0c2_bomb-bot-grey.png",
+    "sheet": "PnP03",
+    "row": 0,
+    "col": 2,
+    "name": "Bomb-Bot",
+    "team": "grey",
+    "pdf_rect_pt": [
+      392.598,
+      36.0,
+      570.674,
+      299.838
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp03_r0c3_bomber-red.png",
+    "sheet": "PnP03",
+    "row": 0,
+    "col": 3,
+    "name": "Bomber",
+    "team": "red",
+    "pdf_rect_pt": [
+      571.122,
+      36.0,
+      749.198,
+      299.838
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp03_r1c0_bouncer-blue.png",
+    "sheet": "PnP03",
+    "row": 1,
+    "col": 0,
+    "name": "Bouncer",
+    "team": "blue",
+    "pdf_rect_pt": [
+      35.723,
+      312.162,
+      213.799,
+      576.0
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp03_r1c1_bouncer-red.png",
+    "sheet": "PnP03",
+    "row": 1,
+    "col": 1,
+    "name": "Bouncer",
+    "team": "red",
+    "pdf_rect_pt": [
+      214.521,
+      312.162,
+      392.597,
+      576.0
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp03_r1c2_butler-grey.png",
+    "sheet": "PnP03",
+    "row": 1,
+    "col": 2,
+    "name": "Butler",
+    "team": "grey",
+    "pdf_rect_pt": [
+      392.959,
+      312.162,
+      571.035,
+      576.0
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp03_r1c3_clone-grey.png",
+    "sheet": "PnP03",
+    "row": 1,
+    "col": 3,
+    "name": "Clone",
+    "team": "grey",
+    "pdf_rect_pt": [
+      571.122,
+      312.162,
+      749.198,
+      576.0
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp06_r0c0_drunk-mystery.png",
+    "sheet": "PnP06",
+    "row": 0,
+    "col": 0,
+    "name": "Drunk",
+    "team": "mystery",
+    "pdf_rect_pt": [
+      35.0,
+      36.0,
+      213.076,
+      299.838
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp06_r0c1_enforcer-blue.png",
+    "sheet": "PnP06",
+    "row": 0,
+    "col": 1,
+    "name": "Enforcer",
+    "team": "blue",
+    "pdf_rect_pt": [
+      213.076,
+      36.0,
+      391.153,
+      299.838
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp06_r0c2_enforcer-red.png",
+    "sheet": "PnP06",
+    "row": 0,
+    "col": 2,
+    "name": "Enforcer",
+    "team": "red",
+    "pdf_rect_pt": [
+      391.153,
+      36.0,
+      569.229,
+      299.838
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp06_r0c3_engineer-red.png",
+    "sheet": "PnP06",
+    "row": 0,
+    "col": 3,
+    "name": "Engineer",
+    "team": "red",
+    "pdf_rect_pt": [
+      569.228,
+      36.0,
+      747.305,
+      299.838
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp06_r1c0_eris-blue.png",
+    "sheet": "PnP06",
+    "row": 1,
+    "col": 0,
+    "name": "Eris",
+    "team": "blue",
+    "pdf_rect_pt": [
+      35.723,
+      312.162,
+      213.799,
+      576.0
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp06_r1c1_gambler-grey.png",
+    "sheet": "PnP06",
+    "row": 1,
+    "col": 1,
+    "name": "Gambler",
+    "team": "grey",
+    "pdf_rect_pt": [
+      213.076,
+      312.162,
+      391.152,
+      576.0
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp06_r1c2_hot-potato-grey.png",
+    "sheet": "PnP06",
+    "row": 1,
+    "col": 2,
+    "name": "Hot Potato",
+    "team": "grey",
+    "pdf_rect_pt": [
+      391.514,
+      312.162,
+      569.59,
+      576.0
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp06_r1c3_invincible-blue.png",
+    "sheet": "PnP06",
+    "row": 1,
+    "col": 3,
+    "name": "Invincible",
+    "team": "blue",
+    "pdf_rect_pt": [
+      569.229,
+      312.162,
+      747.305,
+      576.0
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp10_r0c0_paparazzo-red.png",
+    "sheet": "PnP10",
+    "row": 0,
+    "col": 0,
+    "name": "Paparazzo",
+    "team": "red",
+    "pdf_rect_pt": [
+      35.0,
+      36.0,
+      213.076,
+      299.838
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp10_r0c1_paranoid-blue.png",
+    "sheet": "PnP10",
+    "row": 0,
+    "col": 1,
+    "name": "Paranoid",
+    "team": "blue",
+    "pdf_rect_pt": [
+      213.076,
+      36.0,
+      391.153,
+      299.838
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp10_r0c2_paranoid-red.png",
+    "sheet": "PnP10",
+    "row": 0,
+    "col": 2,
+    "name": "Paranoid",
+    "team": "red",
+    "pdf_rect_pt": [
+      391.153,
+      36.0,
+      569.229,
+      299.838
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp10_r0c3_president-blue.png",
+    "sheet": "PnP10",
+    "row": 0,
+    "col": 3,
+    "name": "President",
+    "team": "blue",
+    "pdf_rect_pt": [
+      569.228,
+      36.0,
+      747.305,
+      299.838
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp10_r1c0_presidents-daughter-blue.png",
+    "sheet": "PnP10",
+    "row": 1,
+    "col": 0,
+    "name": "Presidents Daughter",
+    "team": "blue",
+    "pdf_rect_pt": [
+      35.0,
+      312.162,
+      213.076,
+      576.0
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp10_r1c1_private-eye-grey.png",
+    "sheet": "PnP10",
+    "row": 1,
+    "col": 1,
+    "name": "Private Eye",
+    "team": "grey",
+    "pdf_rect_pt": [
+      213.076,
+      312.162,
+      391.153,
+      576.0
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp10_r1c2_psychologist-blue.png",
+    "sheet": "PnP10",
+    "row": 1,
+    "col": 2,
+    "name": "Psychologist",
+    "team": "blue",
+    "pdf_rect_pt": [
+      391.513,
+      312.162,
+      569.59,
+      576.0
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp10_r1c3_psychologist-red.png",
+    "sheet": "PnP10",
+    "row": 1,
+    "col": 3,
+    "name": "Psychologist",
+    "team": "red",
+    "pdf_rect_pt": [
+      570.313,
+      312.162,
+      748.389,
+      576.0
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp11_r0c0_queen-grey.png",
+    "sheet": "PnP11",
+    "row": 0,
+    "col": 0,
+    "name": "Queen",
+    "team": "grey",
+    "pdf_rect_pt": [
+      35.0,
+      36.0,
+      213.076,
+      299.838
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp11_r0c1_red-team-red.png",
+    "sheet": "PnP11",
+    "row": 0,
+    "col": 1,
+    "name": "Red Team",
+    "team": "red",
+    "pdf_rect_pt": [
+      213.076,
+      36.0,
+      391.153,
+      299.838
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp11_r0c2_red-team-red-2.png",
+    "sheet": "PnP11",
+    "row": 0,
+    "col": 2,
+    "name": "Red Team",
+    "team": "red",
+    "pdf_rect_pt": [
+      391.153,
+      36.0,
+      569.229,
+      299.838
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp11_r0c3_red-team-red-3.png",
+    "sheet": "PnP11",
+    "row": 0,
+    "col": 3,
+    "name": "Red Team",
+    "team": "red",
+    "pdf_rect_pt": [
+      569.228,
+      36.0,
+      747.305,
+      299.838
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp11_r1c0_red-team-red-4.png",
+    "sheet": "PnP11",
+    "row": 1,
+    "col": 0,
+    "name": "Red Team",
+    "team": "red",
+    "pdf_rect_pt": [
+      35.0,
+      312.162,
+      213.076,
+      576.0
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp11_r1c1_red-team-red-5.png",
+    "sheet": "PnP11",
+    "row": 1,
+    "col": 1,
+    "name": "Red Team",
+    "team": "red",
+    "pdf_rect_pt": [
+      213.076,
+      312.162,
+      391.153,
+      576.0
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp11_r1c2_red-team-red-6.png",
+    "sheet": "PnP11",
+    "row": 1,
+    "col": 2,
+    "name": "Red Team",
+    "team": "red",
+    "pdf_rect_pt": [
+      391.152,
+      312.162,
+      569.228,
+      576.0
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp11_r1c3_red-team-red-7.png",
+    "sheet": "PnP11",
+    "row": 1,
+    "col": 3,
+    "name": "Red Team",
+    "team": "red",
+    "pdf_rect_pt": [
+      569.229,
+      312.162,
+      747.305,
+      576.0
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp13_r0c0_blue-spy-red.png",
+    "sheet": "PnP13",
+    "row": 0,
+    "col": 0,
+    "name": "Blue Spy",
+    "team": "red",
+    "pdf_rect_pt": [
+      35.722,
+      36.0,
+      213.799,
+      299.838
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp13_r0c1_red-spy-blue.png",
+    "sheet": "PnP13",
+    "row": 0,
+    "col": 1,
+    "name": "Red Spy",
+    "team": "blue",
+    "pdf_rect_pt": [
+      213.799,
+      36.0,
+      391.875,
+      299.838
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp13_r0c2_survivor-grey.png",
+    "sheet": "PnP13",
+    "row": 0,
+    "col": 2,
+    "name": "Survivor",
+    "team": "grey",
+    "pdf_rect_pt": [
+      391.875,
+      36.0,
+      569.951,
+      299.838
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp13_r0c3_target-grey.png",
+    "sheet": "PnP13",
+    "row": 0,
+    "col": 3,
+    "name": "Target",
+    "team": "grey",
+    "pdf_rect_pt": [
+      569.952,
+      36.0,
+      748.027,
+      299.838
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp13_r1c0_thug-blue.png",
+    "sheet": "PnP13",
+    "row": 1,
+    "col": 0,
+    "name": "Thug",
+    "team": "blue",
+    "pdf_rect_pt": [
+      35.361,
+      312.162,
+      213.438,
+      576.0
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp13_r1c1_thug-red.png",
+    "sheet": "PnP13",
+    "row": 1,
+    "col": 1,
+    "name": "Thug",
+    "team": "red",
+    "pdf_rect_pt": [
+      213.799,
+      312.162,
+      391.875,
+      576.0
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp13_r1c2_tinkerer-red.png",
+    "sheet": "PnP13",
+    "row": 1,
+    "col": 2,
+    "name": "Tinkerer",
+    "team": "red",
+    "pdf_rect_pt": [
+      391.875,
+      312.162,
+      569.951,
+      576.0
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  },
+  {
+    "file": "pnp13_r1c3_traveler-grey.png",
+    "sheet": "PnP13",
+    "row": 1,
+    "col": 3,
+    "name": "Traveler",
+    "team": "grey",
+    "pdf_rect_pt": [
+      569.952,
+      312.162,
+      748.027,
+      576.0
+    ],
+    "width_px": 743,
+    "height_px": 1100
+  }
+]

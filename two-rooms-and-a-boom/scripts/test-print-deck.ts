@@ -78,7 +78,11 @@ for (const ps of PLAYSETS) {
 
   for (const n of tests) {
     try {
-      const { cards, buried } = buildDeck(n, ps, []);
+      // Custom mix no longer auto-balances odd counts, so feed it a grey
+      // pick (the Gambler) for odd player counts in this generic loop.
+      const extras =
+        ps.id === "custom-mix" ? (n % 2 === 1 ? ["g008"] : []) : [];
+      const { cards, buried } = buildDeck(n, ps, extras);
       assert(cards.length === n, `${ps.id} ${n} size=${cards.length}`);
       if (ps.bury) assert(!!buried, `${ps.id} ${n} buried`);
       else assert(!buried, `${ps.id} ${n} no bury`);
@@ -189,24 +193,34 @@ assert(
     assert(false, `custom-mix 10: ${(e as Error).message}`);
   }
 
-  // Odd count should auto-add the Gambler even when nothing grey was picked.
+  // Custom mix no longer auto-adds the Gambler: an odd count with no grey
+  // picked must be rejected with a clear error (the host picks the Gambler
+  // or another grey explicitly to balance).
   try {
-    const { cards } = buildDeck(7, mix, []);
-    const names = cards.map((c) => c.name);
-    assert(cards.length === 7, `custom-mix empty 7 size=${cards.length}`);
-    assert(names.includes("Gambler"), "custom-mix empty 7 auto-adds Gambler for odd count");
+    buildDeck(7, mix, []);
+    assert(false, "custom-mix empty 7 should be rejected (no grey to balance odd count)");
   } catch (e) {
-    assert(false, `custom-mix empty 7: ${(e as Error).message}`);
+    assert(
+      /balance/i.test((e as Error).message),
+      `custom-mix empty 7 rejected with balance error: ${(e as Error).message}`
+    );
   }
 
-  // Picking a core card or the gambler must be rejected.
-  for (const bad of ["b001", "r001", "g008", "b000", "r000"]) {
+  // Picking a core card or a team-filler must be rejected; the Gambler
+  // (g008) is now pickable in a custom mix, so picking it should succeed.
+  for (const bad of ["b001", "r001", "b000", "r000"]) {
     try {
       buildDeck(10, mix, [bad]);
       assert(false, `custom-mix should reject picking ${bad}`);
     } catch {
       assert(true, `custom-mix rejects picking ${bad}`);
     }
+  }
+  try {
+    const { cards } = buildDeck(7, mix, ["g008"]);
+    assert(cards.some((c) => c.name === "Gambler"), "custom-mix lets the host pick the Gambler");
+  } catch (e) {
+    assert(false, `custom-mix picking Gambler: ${(e as Error).message}`);
   }
 }
 
