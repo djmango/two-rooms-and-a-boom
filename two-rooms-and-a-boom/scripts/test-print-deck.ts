@@ -208,10 +208,42 @@ assert(
     assert(true, "custom-mix overload rejected");
   }
 
-  // Picking a core card, a team-filler, a role with no PnP art, or a role
-  // held out of custom mixes (Engineer, Private Eye, Tinkerer, Paparazzo)
-  // must be rejected. The Gambler (g008) is pickable, so picking it succeeds.
-  for (const bad of ["b001", "r001", "b000", "r000", "g024", "r014", "g019", "r024", "r025"]) {
+  // Plain team members (b000/r000) can be added in any count. The host
+  // picks them explicitly and the builder pads any remaining slots.
+  try {
+    const { cards } = buildDeck(6, mix, ["b000", "b000", "r000"]);
+    const blues = cards.filter((c) => c.name === "Blue Team").length;
+    const reds = cards.filter((c) => c.name === "Red Team").length;
+    assert(cards.length === 6, `custom-mix team members 6 size=${cards.length}`);
+    assert(blues === 3 && reds === 1, `custom-mix team member counts blue=${blues} red=${reds} (2 explicit blue + 1 explicit red + 1 auto blue)`);
+    assert(cards.some((c) => c.name === "President") && cards.some((c) => c.name === "Bomber"), "custom-mix team member deck still has core");
+  } catch (e) {
+    assert(false, `custom-mix team members: ${(e as Error).message}`);
+  }
+
+  // Duplicate specials are collapsed (one Angel, not two); plain team
+  // members are not collapsed.
+  try {
+    const { cards } = buildDeck(6, mix, ["r004", "r004", "b000"]);
+    const angels = cards.filter((c) => c.name === "Angel").length;
+    assert(angels === 1, `custom-mix dedupes specials (Angel x${angels})`);
+  } catch (e) {
+    assert(false, `custom-mix dedup: ${(e as Error).message}`);
+  }
+
+  // Too many plain team members overflows the same way specials do.
+  try {
+    buildDeck(4, mix, ["b000", "b000", "b000", "r000", "r000", "r000"]);
+    assert(false, "custom-mix too many team members should be rejected");
+  } catch {
+    assert(true, "custom-mix rejects too many team members");
+  }
+
+  // Picking a core card, a role with no PnP art, or a role held out of
+  // custom mixes (Engineer, Private Eye, Tinkerer, Paparazzo) must be
+  // rejected. Plain team members (b000/r000) are allowed. The Gambler
+  // (g008) is pickable, so picking it succeeds.
+  for (const bad of ["b001", "r001", "g024", "r014", "g019", "r024", "r025"]) {
     try {
       buildDeck(10, mix, [bad]);
       assert(false, `custom-mix should reject picking ${bad}`);

@@ -253,15 +253,25 @@ function buildCustomMixDeck(
 ): BuiltDeck {
   const cards: CardDef[] = [cardFromId("b001"), cardFromId("r001")];
 
+  // Plain team members (b000/r000) can be picked in any amount -- the host
+  // adds them via steppers in the picker, so they may appear multiple times.
+  // Everything else is a special role, deduped (you can't have two Angels).
   const seen = new Set<string>();
   const specials: CardDef[] = [];
+  let explicitBlue = 0;
+  let explicitRed = 0;
   for (const id of cardIds) {
+    if (id === "b000") {
+      explicitBlue += 1;
+      continue;
+    }
+    if (id === "r000") {
+      explicitRed += 1;
+      continue;
+    }
     if (seen.has(id)) continue;
     seen.add(id);
-    if (
-      CORE_CARD_IDS.includes(id as (typeof CORE_CARD_IDS)[number]) ||
-      TEAM_FILLER_IDS.includes(id as (typeof TEAM_FILLER_IDS)[number])
-    ) {
+    if (CORE_CARD_IDS.includes(id as (typeof CORE_CARD_IDS)[number])) {
       throw new Error(`Card ${id} can't be picked in a custom mix; it's auto-included.`);
     }
     if (!CARD_ART_ID_SET.has(id) || CUSTOM_MIX_EXCLUDED_IDS.has(id)) {
@@ -271,21 +281,30 @@ function buildCustomMixDeck(
   }
 
   cards.push(...specials);
+  for (let i = 0; i < explicitBlue; i += 1) {
+    cards.push({ ...cardFromId("b000"), id: `b000-${i + 1}` });
+  }
+  for (let i = 0; i < explicitRed; i += 1) {
+    cards.push({ ...cardFromId("r000"), id: `r000-${i + 1}` });
+  }
 
+  // Any slots left over (the host didn't fill the deck exactly) are padded
+  // with plain team members split as evenly as possible.
   const fillerSlots = deckSize - cards.length;
   if (fillerSlots < 0) {
+    const picked = specials.length + explicitBlue + explicitRed;
     throw new Error(
-      `You've picked ${specials.length} roles, but a ${players}-player game only has room for ${deckSize - 2}. Remove some roles or add more players.`
+      `You've picked ${picked} card${picked === 1 ? "" : "s"}, but a ${players}-player game only has room for ${deckSize - 2}. Remove some or add more players.`
     );
   }
 
   const blueFillers = Math.ceil(fillerSlots / 2);
   const redFillers = fillerSlots - blueFillers;
   for (let i = 0; i < blueFillers; i += 1) {
-    cards.push({ ...cardFromId("b000"), id: `b000-${i + 1}` });
+    cards.push({ ...cardFromId("b000"), id: `b000-${explicitBlue + i + 1}` });
   }
   for (let i = 0; i < redFillers; i += 1) {
-    cards.push({ ...cardFromId("r000"), id: `r000-${i + 1}` });
+    cards.push({ ...cardFromId("r000"), id: `r000-${explicitRed + i + 1}` });
   }
 
   return { cards: shuffle(cards), buried: null };
